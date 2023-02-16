@@ -1,0 +1,19 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>My Club List</h1>
+  {% if myclub_list %}
+  <ul>
+    {% for club in myclub_list %}
+      <li>
+        <a href="{{ club.get_absolute_url }}">{{ club.name }}</a> ({{club.owner}})
+      </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+    <p>You are not part of any clubs yet.</p>
+  {% endif %}
+
+  <a href=" {% url 'home:club-create' %} ">Want to create a Club?</a>
+
+{% endblock %}
