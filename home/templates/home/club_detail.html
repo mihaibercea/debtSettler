@@ -12,7 +12,9 @@
         <p >
         {{ club.members.all}}
         </p>      
-      
+        <p >
+          Whant to invite someone?  <a href="{{ club.get_absolute_url }}/invite"> Invite</a>
+        </p>     
 
     <h4>Sessions</h4>        
         
@@ -27,6 +29,7 @@
   </div>
 
   <hr>
+
 <p><a href = "{{ club.get_absolute_url }}/delete">Do you want to delete the club?</a></p>
 
 {% endblock %}

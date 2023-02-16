@@ -1,0 +1,21 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Name: {{ club.name }}</h1>
+
+  <p><strong>Owner:</strong> <a href="">{{ club.owner }}</a></p> 
+
+  <div style="margin-left:20px;margin-top:20px">
+    <h4>{{ helper_text }}</h4>   
+        
+        <form action="home:club-invite" method="POST">
+            {% csrf_token %}
+            {{ form }}
+            <input type="submit" value="Submit">
+        </form> 
+                        
+  </div>
+
+  <hr>
+
+{% endblock %}

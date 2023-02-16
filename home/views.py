@@ -16,6 +16,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
+from .forms import InviteForm
 
 
 
@@ -50,12 +51,43 @@ def myclublist_view(request):
     
     #queryset = CustomUser.objects.all() 
 
-class ClubDetailView(generic.DetailView):
+class ClubDetailView(LoginRequiredMixin, generic.DetailView):
     model = Club   
 
     def club_detail_view(request, primary_key):
         club = get_object_or_404(Club, pk=primary_key)        
         return render(request, 'home/club_detail.html', context={'club': club})
+        
+
+class ClubInviteView(LoginRequiredMixin, generic.DetailView):
+
+    model = Club
+
+    def club_invite_view(request, primary_key):
+        club = get_object_or_404(Club, pk=primary_key)
+        form = InviteForm(request.POST)
+        helper_text = 'Invite a user:'        
+
+        if request.method == 'POST':
+            form = InviteForm(request.POST)
+            
+            if form.is_valid():
+
+                user_invite = form.cleaned_data['user']
+                
+
+                for u in CustomUser.object.all():
+                    if user_invite == u.username:
+
+                        valid_invite = Invite(parent_club=club, from_user=request.user, to_user=u, time_created = timezone.now)
+                        valid_invite.save()                                        
+                        club.invites_sent.add(valid_invite)
+                        club.save() 
+                        return render(request, 'home/club_detail.html', context={'club': club})
+                    
+                return render(request, 'home/club_invite.html', context={'form':form, 'helper_text':'User not found. Please input a valid username', 'club': club})
+        
+        return render(request, 'home/club_invite.html', context={'club': club, 'form':form, 'helper_text':helper_text})       
 
 class SessionDetailView(LoginRequiredMixin, generic.DetailView):
     model = Session
@@ -83,17 +115,11 @@ class ClubCreate(LoginRequiredMixin, CreateView):
     #redirect_field_name = 'redirect_to'
 
     #success_url = reverse_lazy('my_clubs') 
-
-# @login_required
-# def create_club_invite(request):
-#     model = Invite
-#     invite = request.clubs.all()
-#     return render(request, 'home/create_club_invite.html', context={'invite': invite})
-    
+        
 
 class ClubUpdate(LoginRequiredMixin, UpdateView):
     model = Club
-    fields = ['name', 'members', 'sessions'] # Not recommended (potential security issue if more fields added)
+    fields = ['name', 'members', 'sessions'] 
 
 class ClubDelete(LoginRequiredMixin, DeleteView):
     model = Club

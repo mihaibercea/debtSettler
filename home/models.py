@@ -34,6 +34,8 @@ class Club(models.Model):
 
     members = models.ManyToManyField('accounts.CustomUser', help_text='Add members to this club')
 
+    invites_sent = models.ManyToManyField('Invite')
+
     #all_club_members = members.all()
 
     sessions = models.ManyToManyField('Session')
@@ -54,7 +56,7 @@ class Invite(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='Unique ID for this particular invite')
 
-    club = models.ForeignKey('Club', on_delete=models.CASCADE)
+    parent_club = models.ForeignKey('Club', on_delete=models.CASCADE)
 
     from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='from_user')
 
