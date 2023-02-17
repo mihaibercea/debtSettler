@@ -16,7 +16,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from .forms import InviteForm
+from .forms import InviteForm, TestForm
 
 
 
@@ -56,38 +56,60 @@ class ClubDetailView(LoginRequiredMixin, generic.DetailView):
 
     def club_detail_view(request, primary_key):
         club = get_object_or_404(Club, pk=primary_key)        
-        return render(request, 'home/club_detail.html', context={'club': club})
-        
-
-class ClubInviteView(LoginRequiredMixin, generic.DetailView):
-
-    model = Club
-
-    def club_invite_view(request, primary_key):
-        club = get_object_or_404(Club, pk=primary_key)
-        form = InviteForm(request.POST)
-        helper_text = 'Invite a user:'        
-
-        if request.method == 'POST':
-            form = InviteForm(request.POST)
+        return render(request, 'home/club_detail.html', context={'club': club})   
             
-            if form.is_valid():
 
-                user_invite = form.cleaned_data['user']
-                
+# class ClubInviteView(LoginRequiredMixin, generic.DetailView):
 
-                for u in CustomUser.object.all():
-                    if user_invite == u.username:
+#     model = Club
+#     template_name = "home/club_invite.html"
 
-                        valid_invite = Invite(parent_club=club, from_user=request.user, to_user=u, time_created = timezone.now)
-                        valid_invite.save()                                        
-                        club.invites_sent.add(valid_invite)
-                        club.save() 
-                        return render(request, 'home/club_detail.html', context={'club': club})
-                    
-                return render(request, 'home/club_invite.html', context={'form':form, 'helper_text':'User not found. Please input a valid username', 'club': club})
+def test_view(request):
+    helper_text = 'Testing...'
+    text = 'No text yet.'
+
+    if request.method == 'POST':
+        form = TestForm(request.POST)
         
-        return render(request, 'home/club_invite.html', context={'club': club, 'form':form, 'helper_text':helper_text})       
+        if form.is_valid():
+
+            text = form.cleaned_data['text']
+            helper_text = 'Test has passed.' 
+                
+            #return render(request, 'home/test.html', context={'form':form, 'helper_text':helper_text, 'text': text})
+            return render(request, 'home/index.html')
+    else:
+        form = TestForm()
+    return render(request, 'home/test.html', context={'form':form, 'helper_text':helper_text, 'text': text}) 
+
+@login_required
+def club_invite_view(request, pk):
+    club = get_object_or_404(Club, pk=pk)        
+    helper_text = 'Invite a user:'        
+
+    if request.method == 'POST':
+        form = InviteForm(request.POST)
+        
+        if form.is_valid():
+
+            user_invited = form.cleaned_data['user']                
+
+            for u in CustomUser.objects.all():
+                if user_invited == str(u.username):
+
+                    valid_invite = Invite(parent_club=club, from_user=request.user, to_user=u, time_created = timezone.now)
+
+                    helper_text = 'Invite a user:'
+
+                    valid_invite.save()                                        
+                    club.invites_sent.add(valid_invite)
+                    club.save() 
+                    return render(request, 'home/club_invite.html',  context={'form':form, 'helper_text':'Invite sent. Invite another user?', 'club': club})
+                
+            return render(request, 'home/club_invite.html', context={'form':form, 'helper_text':'User not found. Please input a valid username', 'club': club})
+    else:
+        form = InviteForm()
+    return render(request, 'home/club_invite.html', context={'club': club, 'form':form, 'helper_text':helper_text})       
 
 class SessionDetailView(LoginRequiredMixin, generic.DetailView):
     model = Session
@@ -119,7 +141,7 @@ class ClubCreate(LoginRequiredMixin, CreateView):
 
 class ClubUpdate(LoginRequiredMixin, UpdateView):
     model = Club
-    fields = ['name', 'members', 'sessions'] 
+    fields = ['name', 'members'] 
 
 class ClubDelete(LoginRequiredMixin, DeleteView):
     model = Club
