@@ -82,14 +82,17 @@ WSGI_APPLICATION = 'debtSettler.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'settler',
-        'USER': 'postgres',
-        'PASSWORD': 'Gigisapunaru123',
-        'HOST': 'localhost',
-        'PORT': '',
+        'NAME': 'debt-settler-database',
+        'USER': 'hfojhxnhrz',
+        'PASSWORD': 'OU07J06IDH8135O5',
+        'HOST': 'debt-settler-server.postgres.database.azure.com',
+        'PORT': '5432',
+        'OPTIONS':{
+            'sslmode':'require'
+        }
     }
 }
-
+#dbname=debt-settler-database host=debt-settler-server.postgres.database.azure.com port=5432 sslmode=require user=hfojhxnhrz password=OU07J06IDH8135O5$
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
