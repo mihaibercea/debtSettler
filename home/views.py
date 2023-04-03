@@ -307,7 +307,7 @@ class SessionDetailView(LoginRequiredMixin, FormMixin, generic.DetailView):
 
         return render(request, 'session_detail.html')
         
-    
+    #test
 
 class ClubCreate(LoginRequiredMixin, CreateView):
     model = Club        
