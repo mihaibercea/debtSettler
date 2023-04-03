@@ -19,9 +19,11 @@
           <li><a href=" {% url 'home:clubs' %} ">All Clubs</a></li>
           
           {% if user.is_authenticated %}
-            <li>User: {{ user.get_username }}</li>
+            <li>User: {{ user.username }}</li>
             <li><a href="{% url 'home:myclubs' %}">My Clubs</a></li>
-            <li><a href="{% url 'accounts:logout' %}?next={{ request.path }}">Logout</a></li>            
+            <li><a href="{% url 'accounts:logout' %}?next={{ request.path }}">Logout</a></li>
+            <hr>          
+            <li>You have {{user.invites_received.count}} <a href="{% url 'home:myinvites' %}">Invites</a>  </li>
           {% else %}
             <li><a href="{% url 'accounts:login' %}?next={{ request.path }}">Login</a></li>
           {% endif %}

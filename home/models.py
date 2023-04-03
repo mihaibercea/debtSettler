@@ -64,9 +64,11 @@ class Invite(models.Model):
 
     time_created = models.DateField(default=timezone.now)
 
+    accepted = models.BooleanField(default=False)
+
     def __str__(self):
         """String for representing the Model object."""
-        text = 'From ' + self.from_user + 'to ' + self.to_user + ', with ID: ' + str(self.id)
+        text = 'From ' + str(self.from_user)+ 'to ' + str(self.to_user) + ', with ID: ' + str(self.id)
         return text
     
     def get_absolute_url(self):
@@ -82,9 +84,9 @@ class Session(models.Model):
 
     name = models.CharField(max_length=200, default = 'New Session')
 
-    members = models.ManyToManyField('accounts.CustomUser', help_text='Add members to this session')
+    members = models.ManyToManyField('SessionMember', help_text='Add members to this session')
 
-    #parent_club = models.ForeignKey('Club', on_delete = models.CASCADE, default=Club.objects.get(name='PPC').id)
+    parent_club = models.ForeignKey('Club', on_delete = models.CASCADE, default=Club.objects.get(name='asd').id)
 
     STATUS_ = (
         ('o', 'open'),
@@ -92,15 +94,15 @@ class Session(models.Model):
     )
 
     TYPE_ = (
-        ('z', 'Zero Sum'), 
-        ('s', 'Split Sum')
+        ('z', 'Zero Sum'), # zero sum calculates a zero sum between all members. The ballance should always reach 0. 
+        ('s', 'Split Sum') # split sum splits debt for all involved members.
     )
 
     type =  models.CharField(
         max_length=1,
         choices=TYPE_,
         blank=True,
-        default='o',
+        default='z',
         help_text='Type of session',
     )
 
@@ -108,7 +110,7 @@ class Session(models.Model):
         max_length=1,
         choices=STATUS_,
         blank=True,
-        default='z',
+        default='o',
         help_text='Status of the session',
     )
 
@@ -120,4 +122,16 @@ class Session(models.Model):
     def get_absolute_url(self):
         """Returns the URL to access a particular instance of MyModelName."""
         return reverse('home:session-detail', args=[str(self.id)])
-    
+
+
+class SessionMember(models.Model):
+
+    id = models.CharField(max_length=200, primary_key=True)
+    name =  models.CharField(max_length=200, default = 'New Member')
+    debit = models.FloatField(default=0)
+    settled_sum = models.FloatField(default=0)
+    parent_session = models.ForeignKey('Session', on_delete = models.CASCADE, default=None)
+
+    def __str__(self):
+        """String for representing the Model object."""
+        return self.name

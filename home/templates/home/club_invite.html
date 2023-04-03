@@ -8,7 +8,7 @@
   <div style="margin-left:20px;margin-top:20px">
     <h4>{{ helper_text }}</h4>   
         
-        <form action="home:club-invite" method="POST">
+        <form action="{{ club.get_absolute_url }}/invite" method="POST">
             {% csrf_token %}
             {{ form }}
             <input type="submit" value="Submit">

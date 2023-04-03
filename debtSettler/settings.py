@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'debtSettler.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'debtSettler',
+        'NAME': 'settler',
         'USER': 'postgres',
         'PASSWORD': 'Gigisapunaru123',
         'HOST': 'localhost',
@@ -131,3 +131,25 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "accounts.CustomUser"
 LOGIN_REDIRECT_URL = "../../home"
 LOGOUT_REDIRECT_URL = "../../home"
+APPEND_SLASH=False
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

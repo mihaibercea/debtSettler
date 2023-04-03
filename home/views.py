@@ -7,8 +7,8 @@ from django.contrib.auth import views
 from accounts.models import CustomUser
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from home.models import Club, Session, Invite
-from django.http import HttpResponse, HttpResponseRedirect
+from home.models import Club, Session, Invite, SessionMember
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from accounts.models import CustomUser
 
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -16,7 +16,10 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from .forms import InviteForm, TestForm
+from .forms import InviteForm, TestForm, SessionForm
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic.edit import FormMixin
+import json
 
 
 
@@ -26,7 +29,7 @@ def index(request):
     num_clubs = Club.objects.all().count()    
 
    
-#     The 'all()' is implied by default.
+    # The 'all()' is implied by default.
     num_members = CustomUser.objects.count()
 
     context = {
@@ -51,12 +54,46 @@ def myclublist_view(request):
     
     #queryset = CustomUser.objects.all() 
 
+@login_required
+def myinvites_list(request):    
+    user = request.user 
+    return render(request, 'home/myinvites.html', context={'user': user})
+
+
+@login_required
+@csrf_exempt
+def accept_invite(request, pk):
+    # is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    # if is_ajax:
+    #     if request.method == 'POST':
+    #         data = json.load(request)
+    #         todo = data.get('payload')
+    #         Todo.objects.create(task=todo['task'], completed=todo['completed'])
+    #         return JsonResponse({'status': 'Todo added!'})
+    #     return JsonResponse({'status': 'Invalid request'}, status=400)
+    # else:
+    #     return HttpResponseBadRequest('Invalid request')   
+    
+    if request.method == 'GET':
+        pk = request.GET['invite_id']
+        invite = get_object_or_404(Invite, pk=pk)
+        invite.accepted = True
+        invite.parent_club.members.add(invite.to_user)
+        invite.to_user.clubs.add(invite.parent_club)
+        invite.save()
+        return HttpResponse('Success')
+    else:
+        return HttpResponse('Not a GET method')
+
 class ClubDetailView(LoginRequiredMixin, generic.DetailView):
     model = Club   
 
     def club_detail_view(request, primary_key):
-        club = get_object_or_404(Club, pk=primary_key)        
-        return render(request, 'home/club_detail.html', context={'club': club})   
+        club = get_object_or_404(Club, pk=primary_key)      
+        sesisons_list = club.sessions.all()
+
+        return render(request, 'home/club_detail.html', context={'club': club, 'sesisons_list':sesisons_list})        
             
 
 # class ClubInviteView(LoginRequiredMixin, generic.DetailView):
@@ -65,25 +102,144 @@ class ClubDetailView(LoginRequiredMixin, generic.DetailView):
 #     template_name = "home/club_invite.html"
 
 def test_view(request):
-    helper_text = 'Testing...'
+
     text = 'No text yet.'
+    session = Session.objects.get(id="5702d03c-6aa4-4eaa-b70c-f1f3bbf57958")
+
+    # if request.method == 'POST':
+    #     form = TestForm(request.POST)
+        
+    #     if form.is_valid():
+
+    #         text = form.cleaned_data['text']          
+                
+    #         return render(request, 'test.html', context={'form':form, 'text': text, 'session':session})
+    #         #return HttpResponseRedirect(reverse('home:index'))
+    # else:
+        
+    form = TestForm()
+
+    return render(request, 'test.html', context={'form':form, 'text': text, 'session':session})
+
+def add_member_debit(request, spk, mpk):
+    session = get_object_or_404(Session, pk=spk)    
+    member = get_object_or_404(SessionMember, pk=mpk)
 
     if request.method == 'POST':
         form = TestForm(request.POST)
-        
         if form.is_valid():
 
-            text = form.cleaned_data['text']
-            helper_text = 'Test has passed.' 
-                
-            #return render(request, 'home/test.html', context={'form':form, 'helper_text':helper_text, 'text': text})
-            return render(request, 'home/index.html')
-    else:
-        form = TestForm()
-    return render(request, 'home/test.html', context={'form':form, 'helper_text':helper_text, 'text': text}) 
+            new_debit = form.cleaned_data['debit']
+            member.debit = new_debit
+            member.save()
+
+            #return render(request, 'session_detail.html', context={'form':form, 'session':session})
+            return redirect('home:session-detail', pk=session.id)
+    else:        
+        return HttpResponse('Not a POST method')
 
 @login_required
-def club_invite_view(request, pk):
+def create_session(request, pk):
+
+    club = get_object_or_404(Club, pk=pk)
+
+    if request.method == 'POST':
+        form = SessionForm(request.POST)
+        
+        if form.is_valid():
+           
+            type = form.cleaned_data['type']
+            name =  form.cleaned_data['name']  
+            
+            valid_session = Session(time_created = timezone.now(), name = name,  type = type, parent_club = club)            
+
+            valid_session.save()
+            club.sessions.add(valid_session)
+            club.save()
+
+            sesisons_list = club.sessions.all()
+
+            return render(request, 'home/club_detail.html', context={'club': club, 'sesisons_list':sesisons_list})
+                
+    else:
+        form = SessionForm()
+    return render(request, 'home/session_create.html', context={'club': club, 'form':form})
+
+@login_required
+def session_add_user(request, pk):    
+    
+    session = get_object_or_404(Session, pk=pk)
+
+    members_already_in_session = []
+    
+    for member in session.members.all():
+        members_already_in_session.append(str(member.id))
+
+    if request.method == 'POST':
+
+        member_id = request.POST.get('member_id')
+
+        current_id = str(session.id) + str(member_id)
+
+        if current_id not in members_already_in_session:
+               
+            new_member_username =  request.POST.get('new_member_username')
+            
+            session_member = SessionMember(
+                id = current_id,
+                name = str(new_member_username),            
+                debit=0,
+                settled_sum=0,
+                parent_session = session
+            )
+
+            session_member.save()
+    #name = str(new_member_username), debit=0, settled_sum=0,parent_session = session
+
+            session.members.add(session_member)
+            session.save()
+
+            return render(request, 'home/session_detail.html', context={'session': session})
+        else:
+            return render(request, 'home/session_detail.html', context={'session': session})
+    else:
+        return HttpResponseBadRequest('Invalid request')
+
+@login_required
+def settle_session(request, pk):  
+    session = get_object_or_404(Session, pk=pk)
+
+    if session.status == 'o':
+    
+        total_spent = 0
+        num_members = 0
+
+        for member in session.members.all():
+            total_spent += member.debit
+            num_members += 1
+
+        if num_members > 0:
+            mean_spent = total_spent / num_members
+        
+            for member in session.members.all():
+                member.settled_sum = mean_spent - member.debit
+                member.save()
+
+            session.status='c'
+            session.save()
+
+        return redirect('home:session-detail', pk=session.id)
+
+    elif session.status =='c':
+            session.status='o'
+            session.save()
+            return redirect('home:session-detail', pk=session.id)
+    
+    else:
+        return HttpResponseBadRequest('Invalid request')
+
+@login_required
+def club_invite(request, pk):
     club = get_object_or_404(Club, pk=pk)        
     helper_text = 'Invite a user:'        
 
@@ -97,26 +253,60 @@ def club_invite_view(request, pk):
             for u in CustomUser.objects.all():
                 if user_invited == str(u.username):
 
-                    valid_invite = Invite(parent_club=club, from_user=request.user, to_user=u, time_created = timezone.now)
+                    already_exists = False
+
+                    for inv in club.invites_sent.all():
+                        if inv.to_user == u:
+                            helper_text = 'The user already has an invite to this club. Invite another user?'
+                            return render(request, 'home/club_invite.html',  context={'form':form, 'helper_text':helper_text, 'club': club})
+
+                    valid_invite = Invite(parent_club=club, from_user=request.user, to_user=u, time_created = timezone.now())
 
                     helper_text = 'Invite a user:'
 
-                    valid_invite.save()                                        
+                    valid_invite.save()                        
                     club.invites_sent.add(valid_invite)
+                    u.invites_received.add(valid_invite)
                     club.save() 
                     return render(request, 'home/club_invite.html',  context={'form':form, 'helper_text':'Invite sent. Invite another user?', 'club': club})
                 
             return render(request, 'home/club_invite.html', context={'form':form, 'helper_text':'User not found. Please input a valid username', 'club': club})
     else:
         form = InviteForm()
-    return render(request, 'home/club_invite.html', context={'club': club, 'form':form, 'helper_text':helper_text})       
+    return render(request, 'home/club_invite.html', context={'club': club, 'form':form, 'helper_text':helper_text})
 
-class SessionDetailView(LoginRequiredMixin, generic.DetailView):
+
+class SessionDetailView(LoginRequiredMixin, FormMixin, generic.DetailView):
     model = Session
+    form_class = TestForm
 
-    def session_detail_view(request, primary_key):
-        session = get_object_or_404(Session, pk=primary_key)
-        return render(request, 'home/session_detail.html', context={'session': session})
+    def get_success_url(self):
+        return reverse_lazy('home:session-detail', kwargs={'pk': self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super(SessionDetailView, self).get_context_data(**kwargs)
+        session = get_object_or_404(Session, pk=self.kwargs['pk'])        
+        context['session'] = session
+        context['form_debit'] = TestForm(initial={'parent_session': self.object})
+        return context
+
+    # def post(self, request, *args, **kwargs):
+    #     self.object = self.get_object()
+    #     form = self.get_form()
+    #     if form.is_valid():
+    #         return self.form_valid(form)
+    #     else:
+    #         return self.form_invalid(form)
+
+    # def form_valid(self, form):
+    #     session_member = form.save(commit=False)
+    #     session_member.save()
+    #     return super().form_valid(form)
+
+    def session_detail_view(request):                   
+
+        return render(request, 'session_detail.html')
+        
     
 
 class ClubCreate(LoginRequiredMixin, CreateView):

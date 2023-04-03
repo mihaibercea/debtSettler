@@ -1,0 +1,49 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>My invites List</h1>
+  {% if user.invites_received %}
+  <ul>
+    {% for invite in user.invites_received.all reversed %}
+      <li>
+        from: {{ invite.from_user.username }}
+        <br>      
+        Club: {{ invite.parent_club.name }}
+        <br>
+        {% if invite.accepted %}
+
+            <button class="acceptinvite" disabled >Accepted</button></a>
+
+        {% else %}        
+
+            <button class="acceptinvite" href ="#", id="invite{{invite.id}}", data-inviteid = "{{ invite.id }}"> Accept </button>
+
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+
+            <script type="text/javascript">
+                $('.acceptinvite').click(function(){
+                var catid;
+                inviteid = $(this).attr("data-inviteid");
+                $.ajax(
+                {
+                    type:"GET",
+                    url: "/accept_invite/"+inviteid,
+                    data:{
+                           invite_id: inviteid
+                    },
+                    success: function( data ) 
+                    {
+                        $( '#invite'+ inviteid ).remove();
+                        alert(data)
+                    }
+                })
+                });
+            </script>
+
+        {% endif %}
+
+      </li>
+    {% endfor %}
+    {% endif %}
+  </ul>
+  {% endblock %}

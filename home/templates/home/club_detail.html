@@ -9,30 +9,39 @@
     <h4>Members</h4>   
         
         <hr>
-        <p >
-        {{ club.members.all}}
-        </p>      
+        <ul>
+          {% for member in club.members.all %}
+            <li>
+              <p >{{ member.username }}</p>
+            </li>
+          {% endfor %}        
+        </ul>      
         <p >
           Whant to invite someone?  <a href="{{ club.get_absolute_url }}/invite"> Invite</a>
         </p>     
+        
+    <hr>
 
     <h4>Sessions</h4>        
-        
+
         <ul>
           {% for session in club.sessions.all %}
             <li>
-              <a href="{{ session.get_absolute_url }}">{{ session.id }}</a>
+              <a href="{{ session.get_absolute_url }}">{{ session.name }}</a>
             </li>
-          {% endfor %}
-        </ul>        
+          {% endfor %}        
+      </ul>          
+
+      <a class="addSession", href = "{{club.get_absolute_url }}/create-session">Add Session</a>
             
   </div>
-
-  <hr>
   
+
+  <div style = " position: fixed;  bottom: 0;">
   <p><a href = "{{ club.get_absolute_url }}/update">Do you want to edit the club?</a></p>
 
   <hr>
-<p><a href = "{{ club.get_absolute_url }}/delete">Do you want to delete the club?</a></p>
+  <p><a href = "{{ club.get_absolute_url }}/delete">Do you want to delete the club?</a></p>
+  </div>
 
 {% endblock %}

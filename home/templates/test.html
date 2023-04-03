@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% block title %}<title>Test page</title>{% endblock %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">  
+  
+</head>
+<body>
+<div>
+  
+  <ul>
+    {% for member in session.members.all %}
+    
+    <li>
+
+      <p>{{ member.name }}</p>
+      {% if session.status == "o" %}
+      <p>Current Debit: {{member.debit}}</p>
+      <form action="session/{{session.id}}/{{member.id}}/debit" method="POST">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" value="Submit">
+      </form> 
+      {% endif %}
+      {% if session.status == "c" %}
+      <p>Final Debit: {{member.debit}}</p>
+      <p>Settled Sum: {{member.settled_sum}}</p>
+      {% endif %}    
+    
+    </li>
+    <hr>
+    {% endfor %}
+  </ul>
+
+  
+</div>
+
+<p>Your text: {{ text }}</p>
+  
+</body>
+</html>

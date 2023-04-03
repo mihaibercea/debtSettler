@@ -1,27 +1,100 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-  <h1>Session from club {{ session.club.name }}</h1>
+  
+  <h1>Session: {{ session.name }}</h1>
+
+  {% if session.status == "o" %}
+  <button class = "settle-session", onclick = "location.href ='{{session.get_absolute_url}}/settle';">Settle</button>
+  {% endif %}
+  {% if session.status == "c" %}
+  <button class = "settle-session", onclick = "location.href ='{{session.get_absolute_url}}/settle';">Reopen</button>
+  {% endif %} 
+  <br>
+  <a href = "{{session.parent_club.get_absolute_url}}">Club: {{ session.parent_club.name }}</a>
 
  
   <div style="margin-left:20px;margin-top:20px">
     <h4>Members</h4>   
         
-        <hr>
-        <p >
-        {{ session.members.all}}
-        </p>      
+        <hr> 
+
+        <div id = "members-list">
+        
+          <ul>
+            {% for member in session.members.all %}
+            
+            <li>
+        
+              <p>{{ member.name }}</p>
+              {% if session.status == "o" %}
+              <p>Current Debit: {{member.debit}}</p>
+              <form action="{% url 'home:add-member-debit' session.id member.id %}" method="POST">
+                {% csrf_token %}
+              
+                    {{ form_debit }}
+                
+                <input type="submit" value="Submit">
+            </form>
+              {% endif %}
+              {% if session.status == "c" %}
+              <p>Final Debit: {{member.debit}}</p>
+              <p>Settled Sum: {{member.settled_sum}}</p>
+              {% endif %}    
+            
+            </li>
+            <hr>
+            {% endfor %}
+          </ul>
+
+        </div>
+
+        <button class = "addmembers" >Add Members</button>
+
+        <div id = "members-to-invite">
+
+        </div>        
       
+        <hr>        
 
     <h4>Details:</h4>
        
         <p >
-        Type: {{ sessions.type}}
+        Type: {{ session.type}}
         </p> 
         <p >
-        Status: {{ sessions.status}}
+        Status: {{ session.status}}
         </p>     
 
-
   </div>
+
+  
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+
+
+      <script type="text/javascript">
+        $(document).on('click', '#add_member', function(){          
+          var user = $(this).attr("data-username");
+          var session_id = $(this).attr("data-session-id");
+          var user_id = $(this).attr("data-user-id");
+          $.ajax(
+          {
+              type:"POST",
+              url: session_id + "/adduser",
+              data: {
+                settlement : 0,
+                new_member_username: user,
+                member_id: user_id,
+                csrfmiddlewaretoken: '{{ csrf_token }}', // Add this line to include the CSRF token in the headers,
+              },              
+          
+          })               
+        
+        });
+
+        $('.addmembers').click(function(){      
+          document.getElementById("members-to-invite").innerHTML = "<ul> {% for member in session.parent_club.members.all %} <li> <p> {{member.username}} </p>  <button id = \"add_member\", data-username = \"{{member.username}}\", data-session-id =\"{{session.id}}\", data-user-id = \"{{member.id}}\" > + </button> </li> {% endfor %} </ul>";    
+        });
+      </script>
+
 {% endblock %}
