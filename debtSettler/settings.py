@@ -150,6 +150,7 @@ LOGIN_REDIRECT_URL = "../../home"
 LOGOUT_REDIRECT_URL = "../../home"
 APPEND_SLASH=False
 
+CSRF_TRUSTED_ORIGINS = ['https://debt-settler.azurewebsites.net']
 
 LOGGING = {
     'version': 1,
