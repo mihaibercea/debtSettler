@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/815b8f6b-dad3-4402-8d0d-6f6c2858fab2/resourceGroups/DebtSettler-webapp/providers/Microsoft.Web/sites/Debt-settler",
+    "appService.deploySubpath": "."
+}
