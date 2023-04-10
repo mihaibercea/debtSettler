@@ -86,7 +86,7 @@ class Session(models.Model):
 
     members = models.ManyToManyField('SessionMember', help_text='Add members to this session')
 
-    parent_club = models.ForeignKey('Club', on_delete = models.CASCADE, default=Club.objects.get(name='asd').id)
+    parent_club = models.ForeignKey('Club', on_delete = models.CASCADE, default=None)
 
     STATUS_ = (
         ('o', 'open'),

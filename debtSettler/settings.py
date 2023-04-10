@@ -95,10 +95,25 @@ WSGI_APPLICATION = 'debtSettler.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'test',
+        'USER': 'postgres',
+        'PASSWORD': 'Gigisapunaru123',
+        'HOST': 'localhost',
+        'PORT': '5432',
+        # 'OPTIONS':{
+        #     'sslmode':'require'
+        # }
     }
 }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 #dbname=debt-settler-database host=debt-settler-server.postgres.database.azure.com port=5432 sslmode=require user=hfojhxnhrz password=OU07J06IDH8135O5$
