@@ -87,14 +87,26 @@ def accept_invite(request, pk):
         return HttpResponse('Not a GET method')
 
 class ClubDetailView(LoginRequiredMixin, generic.DetailView):
-    model = Club   
+    model = Club
 
     def club_detail_view(request, primary_key):
-        club = get_object_or_404(Club, pk=primary_key)      
-        sesisons_list = club.sessions.all()
 
-        return render(request, 'home/club_detail.html', context={'club': club, 'sesisons_list':sesisons_list})        
+        u = request.user
+
+        club = get_object_or_404(Club, pk=primary_key)
+
+        helper_text = "Hello " + str(u.username) + ". Welcome to club: " + club.name
+
+        if u not in club.members.all():
             
+            return render(request, 'home/club_list.html', context={'club_list': Club.objects.all() })    
+        
+        else:
+
+            sesisons_list = club.sessions.all()
+
+            return render(request, 'home/club_detail.html', context={'club': club, 'sesisons_list':sesisons_list, 'helper_text': helper_text})        
+                
 
 # class ClubInviteView(LoginRequiredMixin, generic.DetailView):
 
