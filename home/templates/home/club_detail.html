@@ -6,6 +6,8 @@
   <p><strong>Owner:</strong> <a href="">{{ club.owner }}</a></p> <!-- author detail link not yet defined --> 
   <p> {{ helper_text }} </p>
 
+  {% if is_member %}
+
   <div style="margin-left:20px;margin-top:20px">
     <h4>Members</h4>   
         
@@ -26,7 +28,7 @@
     <h4>Sessions</h4>        
 
         <ul>
-          {% for session in club.sessions.all %}
+          {% for session in sessions_list.all %}
             <li>
               <a href="{{ session.get_absolute_url }}">{{ session.name }}</a>
             </li>
@@ -35,7 +37,14 @@
 
       <a class="addSession", href = "{{club.get_absolute_url }}/create-session">Add Session</a>
             
-  </div>
+  </div>  
+
+  {% else %}
+
+  <p> You are not part of the club. Would you like to join the club? </p>
+  <button> Request to join </button>
+  
+  {% endif %}
   
 
   <div style = " position: fixed;  bottom: 0;">

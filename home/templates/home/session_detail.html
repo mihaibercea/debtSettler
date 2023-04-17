@@ -1,6 +1,8 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
+
+  {% if is_member %}
   
   <h1>Session: {{ session.name }}</h1>
 
@@ -87,7 +89,10 @@
                 member_id: user_id,
                 csrfmiddlewaretoken: '{{ csrf_token }}', // Add this line to include the CSRF token in the headers,
               },              
-          
+              success: function(response) {
+                // Reload the page
+                location.reload();
+              },
           })               
         
         });
@@ -96,5 +101,12 @@
           document.getElementById("members-to-invite").innerHTML = "<ul> {% for member in session.parent_club.members.all %} <li> <p> {{member.username}} </p>  <button id = \"add_member\", data-username = \"{{member.username}}\", data-session-id =\"{{session.id}}\", data-user-id = \"{{member.id}}\" > + </button> </li> {% endfor %} </ul>";    
         });
       </script>
+
+  {% else %}
+
+  <p> You are not part of the club. Would you like to join the club? </p>
+  <button> Request to join </button>
+
+  {% endif %}
 
 {% endblock %}
