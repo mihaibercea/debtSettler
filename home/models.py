@@ -39,6 +39,8 @@ class Club(models.Model):
     #all_club_members = members.all()
 
     sessions = models.ManyToManyField('Session')
+
+    sums = models.ManyToManyField('Sum')
     
     class Meta:
         ordering = ['-time_created']    
@@ -82,7 +84,7 @@ class Session(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='Unique ID for this particular session across whole sessions list')
 
-    name = models.CharField(max_length=200, default = 'New Session')
+    name = models.CharField(max_length=200, default = str(time_created))
 
     members = models.ManyToManyField('SessionMember', help_text='Add members to this session')
 
@@ -131,7 +133,17 @@ class SessionMember(models.Model):
     debit = models.FloatField(default=0)
     settled_sum = models.FloatField(default=0)
     parent_session = models.ForeignKey('Session', on_delete = models.CASCADE, default=None)
+    main_account = models.ForeignKey('accounts.CustomUser', on_delete = models.CASCADE, default=None)
 
     def __str__(self):
         """String for representing the Model object."""
         return self.name
+    
+
+class Sum(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='Unique ID for this particular sum across whole sums list')
+    member = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, default=None)
+    current_sum = models.FloatField(default=0)
+    parent_session = models.ForeignKey('Session', on_delete = models.CASCADE, default=None)
+    paid = models.BooleanField(default=False)

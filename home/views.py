@@ -243,7 +243,8 @@ def session_add_user(request, pk):
                     name = str(new_member_username),            
                     debit=0,
                     settled_sum=0,
-                    parent_session = session
+                    parent_session = session,
+                    main_account = CustomUser.objects.get(id=member_id)
                 )
 
                 session_member.save()
@@ -268,33 +269,48 @@ def settle_session(request, pk):
     if u not in session.parent_club.members.all():
         return HttpResponseBadRequest('Invalid request')
     
-    else:  
-        if session.status == 'o':
-        
-            total_spent = 0
-            num_members = 0
+    else:
 
-            for member in session.members.all():
-                total_spent += member.debit
-                num_members += 1
+        if session.type == 's':
 
-            if num_members > 0:
-                mean_spent = total_spent / num_members
+            if session.status == 'o':
             
+                total_spent = 0
+                num_members = 0
+
                 for member in session.members.all():
-                    member.settled_sum = mean_spent - member.debit
-                    member.save()
+                    total_spent += member.debit
+                    num_members += 1
+
+                if num_members > 0:
+                    mean_spent = total_spent / num_members
+                
+                    for member in session.members.all():
+                        member.settled_sum = mean_spent - member.debit
+                        member.save()
+
+                    session.status='c'
+                    session.save()
+
+                return redirect('home:session-detail', pk=session.id)
+
+            elif session.status =='c':
+                    session.status='o'
+                    session.save()
+                    return redirect('home:session-detail', pk=session.id)
+            
+        elif session.type == 'z':
+            if session.status == 'o':
+
+                for member in session.members.all():
+                        member.settled_sum = member.debit
+                        member.save()
 
                 session.status='c'
                 session.save()
-
-            return redirect('home:session-detail', pk=session.id)
-
-        elif session.status =='c':
-                session.status='o'
-                session.save()
                 return redirect('home:session-detail', pk=session.id)
-        
+            
+
         else:
             return HttpResponseBadRequest('Invalid request')
 
