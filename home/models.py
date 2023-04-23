@@ -19,6 +19,15 @@ from django.db import models
     
 # Create your models here.
 
+
+class Sum(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='Unique ID for this particular sum across whole sums list')
+    member = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, default=None)
+    current_sum = models.FloatField(default=0)
+    parent_session = models.ForeignKey('Session', on_delete = models.CASCADE, default=None)
+    paid = models.BooleanField(default=False)
+
 class Club(models.Model):
 
 
@@ -140,10 +149,3 @@ class SessionMember(models.Model):
         return self.name
     
 
-class Sum(models.Model):
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='Unique ID for this particular sum across whole sums list')
-    member = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, default=None)
-    current_sum = models.FloatField(default=0)
-    parent_session = models.ForeignKey('Session', on_delete = models.CASCADE, default=None)
-    paid = models.BooleanField(default=False)
