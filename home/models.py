@@ -142,7 +142,7 @@ class SessionMember(models.Model):
     debit = models.FloatField(default=0)
     settled_sum = models.FloatField(default=0)
     parent_session = models.ForeignKey('Session', on_delete = models.CASCADE, default=None)
-    main_account = models.ForeignKey('accounts.CustomUser', on_delete = models.CASCADE, default=None)
+    main_account = models.ForeignKey('accounts.CustomUser', on_delete = models.CASCADE, default=None, null=True)
 
     def __str__(self):
         """String for representing the Model object."""
