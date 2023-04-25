@@ -10,7 +10,7 @@ class CustomUser(AbstractUser):
 
     invites_received = models.ManyToManyField('home.Invite', help_text='Invites received by this user', related_name='invites_received')
 
-    #sums = models.ManyToManyField('home.Sum', help_text='Sums assinged to this user')
+    sums = models.ManyToManyField('home.Sum', help_text='Sums assinged to this user')
 
     # add additional fields in here
 

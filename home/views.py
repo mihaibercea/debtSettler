@@ -21,7 +21,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormMixin
 import json
 
-
+#import pdb; pdb.set_trace()
 
 def index(request):
 
@@ -226,7 +226,7 @@ def session_add_user(request, pk):
         members_already_in_session = []
         
         for member in session.members.all():
-            members_already_in_session.append(str(member.id))
+            members_already_in_session.append((member.id))
 
         if request.method == 'POST':
 
@@ -238,7 +238,7 @@ def session_add_user(request, pk):
                 
                 new_member_username =  request.POST.get('new_member_username')
 
-                acc = CustomUser.objects.get(id=member_id)
+                acc = CustomUser.objects.get(id=str(member_id))
                 
                 session_member = SessionMember(
                     id = current_id,
@@ -254,6 +254,8 @@ def session_add_user(request, pk):
                     current_sum = 0,
                     parent_session = session                    
                 )
+
+                new_sum.save()
 
                 acc.sums.add(new_sum)
                 acc.save()
@@ -282,12 +284,8 @@ def settle_session(request, pk):
     
     else:
 
-        if session.status =='c':
-                    session.status='o'
-                    session.save()
-                    return redirect('home:session-detail', pk=session.id)
-
-        else:
+        
+        if session.status == "o":
 
             if session.type == 's':               
                 
@@ -305,6 +303,18 @@ def settle_session(request, pk):
                         member.settled_sum = mean_spent - member.debit
                         member.save()
 
+                    for member in session.members.all():
+                        member.settled_sum = mean_spent                       
+                        acc = member.main_account
+                        for s in acc.sums.all():
+                            if s.session == session:
+                                sum = s
+
+                        sum.current_sum = mean_spent   
+                        
+                        sum.save()
+                        member.save()
+
                     session.status='c'
                     session.save()
 
@@ -313,20 +323,29 @@ def settle_session(request, pk):
             elif session.type == 'z':  
 
                 for member in session.members.all():
-                        member.settled_sum = member.debit                        
-                        acc = member.main_account
-                        for s in acc.sums.all():
-                            if s.session == session:
-                                sum = s
+                    member.settled_sum = member.debit                        
+                    acc = member.main_account
+                    for s in acc.sums.all():
+                        if s.session == session:
+                            sum = s
 
-                        sum.current_sum = member.debit   
-                        
-                        sum.save()
-                        member.save()
+                    sum.current_sum = member.debit   
+                    
+                    sum.save()
+                    member.save()
 
                 session.status='c'
                 session.save()
                 return redirect('home:session-detail', pk=session.id)
+
+        elif session.status =='c':
+
+            session.status='o'
+            session.save()
+            return redirect('home:session-detail', pk=session.id)
+
+        else:
+            return HttpResponseBadRequest('Invalid request')
 
 @login_required
 def club_invite(request, pk):
