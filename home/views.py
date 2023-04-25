@@ -7,7 +7,7 @@ from django.contrib.auth import views
 from accounts.models import CustomUser
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from home.models import Club, Session, Invite, SessionMember
+from home.models import Club, Session, Invite, SessionMember, Sum
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from accounts.models import CustomUser
 
@@ -16,7 +16,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from .forms import InviteForm, TestForm, SessionForm
+from .forms import InviteForm, ZeroSumForm, SessionForm
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormMixin
 import json
@@ -148,7 +148,7 @@ def test_view(request):
     #         #return HttpResponseRedirect(reverse('home:index'))
     # else:
         
-    form = TestForm()
+    form = ZeroSumForm()
 
     return render(request, 'test.html', context={'form':form, 'text': text, 'session':session})
 
@@ -158,7 +158,7 @@ def add_member_debit(request, spk, mpk):
 
 
     if request.method == 'POST':
-        form = TestForm(request.POST)
+        form = ZeroSumForm(request.POST)
         if form.is_valid():
 
             new_debit = form.cleaned_data['debit']
@@ -230,13 +230,15 @@ def session_add_user(request, pk):
 
         if request.method == 'POST':
 
-            member_id = request.POST.get('member_id')
+            member_id = request.POST.get('member_id')            
 
             current_id = str(session.id) + str(member_id)
 
             if current_id not in members_already_in_session:
                 
                 new_member_username =  request.POST.get('new_member_username')
+
+                acc = CustomUser.objects.get(id=member_id)
                 
                 session_member = SessionMember(
                     id = current_id,
@@ -244,10 +246,19 @@ def session_add_user(request, pk):
                     debit=0,
                     settled_sum=0,
                     parent_session = session,
-                    main_account = CustomUser.objects.get(id=member_id)
+                    main_account = acc
                 )
 
+                new_sum = Sum(                    
+                    member = acc,
+                    current_sum = 0,
+                    parent_session = session                    
+                )
+
+                acc.sums.add(new_sum)
+                acc.save()
                 session_member.save()
+
         #name = str(new_member_username), debit=0, settled_sum=0,parent_session = session
 
                 session.members.add(session_member)
@@ -271,10 +282,15 @@ def settle_session(request, pk):
     
     else:
 
-        if session.type == 's':
+        if session.status =='c':
+                    session.status='o'
+                    session.save()
+                    return redirect('home:session-detail', pk=session.id)
 
-            if session.status == 'o':
-            
+        else:
+
+            if session.type == 's':               
+                
                 total_spent = 0
                 num_members = 0
 
@@ -292,27 +308,25 @@ def settle_session(request, pk):
                     session.status='c'
                     session.save()
 
-                return redirect('home:session-detail', pk=session.id)
-
-            elif session.status =='c':
-                    session.status='o'
-                    session.save()
-                    return redirect('home:session-detail', pk=session.id)
-            
-        elif session.type == 'z':
-            if session.status == 'o':
+                return redirect('home:session-detail', pk=session.id)            
+                
+            elif session.type == 'z':  
 
                 for member in session.members.all():
-                        member.settled_sum = member.debit
+                        member.settled_sum = member.debit                        
+                        acc = member.main_account
+                        for s in acc.sums.all():
+                            if s.session == session:
+                                sum = s
+
+                        sum.current_sum = member.debit   
+                        
+                        sum.save()
                         member.save()
 
                 session.status='c'
                 session.save()
                 return redirect('home:session-detail', pk=session.id)
-            
-
-        else:
-            return HttpResponseBadRequest('Invalid request')
 
 @login_required
 def club_invite(request, pk):
@@ -361,7 +375,7 @@ def club_invite(request, pk):
 
 class SessionDetailView(LoginRequiredMixin, FormMixin, generic.DetailView):
     model = Session
-    form_class = TestForm
+    form_class = ZeroSumForm
 
     def get_success_url(self):
         return reverse_lazy('home:session-detail', kwargs={'pk': self.object.pk})
@@ -379,7 +393,7 @@ class SessionDetailView(LoginRequiredMixin, FormMixin, generic.DetailView):
         
         context['is_member'] = is_member
         context['session'] = session
-        context['form_debit'] = TestForm(initial={'parent_session': self.object})
+        context['form_debit'] = ZeroSumForm(initial={'parent_session': self.object})
         return context
 
     # def post(self, request, *args, **kwargs):

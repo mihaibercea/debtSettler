@@ -5,7 +5,7 @@ class InviteForm(forms.Form):
 
     user = forms.CharField(label='User', max_length=100)
 
-class TestForm(forms.ModelForm):
+class ZeroSumForm(forms.ModelForm):
 
     class Meta:
         model = SessionMember

@@ -142,7 +142,7 @@
                 </form>
                   {% endif %}
                   {% if session.status == "c" %}
-                  <p>Final Debit: {{member.debit}}</p>
+                  <!-- <p>Final Debit: {{member.debit}}</p> -->
                   <p>Settled Sum: {{member.settled_sum}}</p>
                   {% endif %}    
                 
@@ -209,8 +209,8 @@
 
   {% else %}
 
-  <p> You are not part of the club. Would you like to join the club? </p>
-  <button> Request to join </button>
+    <p> You are not part of the club. Would you like to join the club? </p>
+    <button> Request to join </button>
 
   {% endif %}
 
