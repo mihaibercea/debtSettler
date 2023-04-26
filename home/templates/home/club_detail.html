@@ -8,6 +8,8 @@
 
   {% if is_member %}
 
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
   <div style="margin-left:20px;margin-top:20px">
     <h4>Members</h4>   
         
@@ -30,23 +32,42 @@
         <ul>
           {% for session in sessions_list.all %}
             <li>
-              <a href="{{ session.get_absolute_url }}">{{ session.name }}</a>
+              <a href="{{ session.get_absolute_url }}">{{ session.name }}</a><button class="sessionDelete" data-session_id = {{session.id}}>Delete</button>
             </li>
           {% endfor %}        
-      </ul>          
+      </ul>    
+      
+      <script type="text/javascript">              
+        $(document).on('click', '.sessionDelete', function(){
+            //var csrf_token = $('[name="csrfmiddlewaretoken"]').val(); // Get the CSRF token from the HTML form
+            var session_id = $(this).attr('data-session_id');
+            $.ajax({
+                type: "DELETE",
+                url: "session/" +session_id + "/delete",
+                headers: {
+                  'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
+                },     
+                success: function(response) {
+                    // Reload the page
+                    location.reload();
+                },
+            });
+        });
+      </script>
 
       <a class="addSession", href = "{{club.get_absolute_url }}/create-session">Add Session</a>
             
   </div>  
 
+
+
   {% else %}
 
   <p> You are not part of the club. Would you like to join the club? </p>
-  <button> Request to join </button>
-  
-  {% endif %}
-  
+  <button> Request to join </button> 
 
+  {% endif %}  
+  
   <div style = " position: fixed;  bottom: 0;">
   <p><a href = "{{ club.get_absolute_url }}/update">Do you want to edit the club?</a></p>
 

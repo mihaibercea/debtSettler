@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<h1>Session Creation for club {{club.name}}</h1>
+<h1>Club {{club.name}}: Create Session</h1>
 
 
 <form action="{% url 'home:club-create-session' pk=club.pk %}" method="POST">

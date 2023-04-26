@@ -1,0 +1,14 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>My debit. A list of all debts.</h1>
+  {% if user.sums %}
+  <ul>
+    {% for sum in user.sums.all %}
+      <li>              
+        Club: <a href="{{ sum.parent_session.parent_club.get_absolute_url }}">{{ sum.parent_session.parent_club.name }} </a>. Session: <a href="{{ sum.parent_session.get_absolute_url }}">{{ sum.parent_session.name }} </a>. Sum: {{ sum.current_sum }}. {% if sum.paid %} Paid {% else %} Not paid <button>Pay</button> {% endif %}</p>  
+       </li>
+    {% endfor %}
+    {% endif %}
+  </ul>
+  {% endblock %}

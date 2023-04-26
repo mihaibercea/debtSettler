@@ -22,6 +22,8 @@
             <li>User: {{ user.username }}</li>
             <li><a href="{% url 'home:myclubs' %}">My Clubs</a></li>
             <li><a href="{% url 'accounts:logout' %}?next={{ request.path }}">Logout</a></li>
+            <hr>
+            <li><a href="{% url 'home:mysums' %}">My debit (all debts)</a> </li>
             <hr>          
             <li>You have {{user.invites_received.count}} <a href="{% url 'home:myinvites' %}">Invites</a>  </li>
           {% else %}

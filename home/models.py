@@ -26,7 +26,14 @@ class Sum(models.Model):
     member = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, default=None)
     current_sum = models.FloatField(default=0)
     parent_session = models.ForeignKey('Session', on_delete = models.CASCADE, default=None)
+    partial_paid = models.FloatField(default=0)
     paid = models.BooleanField(default=False)
+
+    def __str__(self):
+        """String for representing the Model object."""
+        return self.name
+
+
 
 class Club(models.Model):
 
@@ -77,6 +84,10 @@ class Invite(models.Model):
 
     accepted = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['-time_created']
+
+
     def __str__(self):
         """String for representing the Model object."""
         text = 'From ' + str(self.from_user)+ 'to ' + str(self.to_user) + ', with ID: ' + str(self.id)
@@ -98,6 +109,8 @@ class Session(models.Model):
     members = models.ManyToManyField('SessionMember', help_text='Add members to this session')
 
     parent_club = models.ForeignKey('Club', on_delete = models.CASCADE, default=None)
+
+    sums = models.ManyToManyField('Sum')
 
     STATUS_ = (
         ('o', 'open'),

@@ -124,35 +124,38 @@
             <hr> 
 
             <div id = "members-list">
-            
-              <ul>
-                {% for member in session.members.all %}
-                
-                <li>
-            
-                  <p>{{ member.name }}</p>
-                  {% if session.status == "o" %}
+              
+              {% if session.status == "o" %}
+
+                <ul>
+                {% for member in session.members.all %}                
+                <li>            
+                  <p>{{ member.name }}</p>                  
                   <p>Current Debit: {{member.debit}}</p>
+
                   <form action="{% url 'home:add-member-debit' session.id member.id %}" method="POST">
-                    {% csrf_token %}
-                  
-                        {{ form_debit }}
-                    
+                    {% csrf_token %}                  
+                        {{ form_debit }}                    
                     <input type="submit" value="Submit">
-                </form>
-                  {% endif %}
-                  {% if session.status == "c" %}
-                  <!-- <p>Final Debit: {{member.debit}}</p> -->
-                  <p>Settled Sum: {{member.settled_sum}}</p>
-                  {% endif %}    
-                
+                  </form>                 
                 </li>
                 <hr>
-                {% endfor %}
-              </ul>
+                {% endfor %}                
+                </ul>
+
+              {% else %}
+                <ul>
+                  {% for sum in session.sums.all %}                  
+                  <li>            
+                    <p>{{sum.member.username}} : {{ sum.current_sum }}. {% if sum.paid %} Paid {% else %} Not paid <button>Pay</button> {% endif %}</p>       
+                  </li>                  
+                  {% endfor %}                
+                </ul>
+              {% endif %}
 
             </div>
 
+            <hr>
             <button class = "addmembers" >Add Members</button>
 
             <div id = "members-to-invite">

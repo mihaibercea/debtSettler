@@ -1,5 +1,6 @@
 from django import forms
 from home.models import SessionMember
+from django.utils import timezone
 
 class InviteForm(forms.Form):
 
@@ -21,7 +22,7 @@ class SessionForm(forms.Form):
         ('s', 'Split Sum') # split sum splits debt for all involved members.
     )
 
-    name = forms.CharField()    
+    name = forms.CharField(initial=str(timezone.now().date()))    
     type = forms.ChoiceField(label='Type', choices = type_choices )
 
 

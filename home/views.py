@@ -59,6 +59,11 @@ def myinvites_list(request):
     user = request.user 
     return render(request, 'home/myinvites.html', context={'user': user})
 
+@login_required
+def mysums(request):    
+    user = request.user 
+    return render(request, 'home/mysums.html', context={'user': user})
+
 
 @login_required
 @csrf_exempt
@@ -152,6 +157,7 @@ def test_view(request):
 
     return render(request, 'test.html', context={'form':form, 'text': text, 'session':session})
 
+@login_required
 def add_member_debit(request, spk, mpk):
     session = get_object_or_404(Session, pk=spk)    
     member = get_object_or_404(SessionMember, pk=mpk)
@@ -209,7 +215,34 @@ def create_session(request, pk):
                     
         else:
             form = SessionForm()
+            #form.name.initial=str(timezone.now())
         return render(request, 'home/session_create.html', context={'club': club, 'form':form, 'is_member': is_member})
+
+@login_required
+def delete_session(request, pk):
+
+    if request.method != 'DELETE':
+        return HttpResponseBadRequest('Invalid request')
+
+    else:
+
+        session = get_object_or_404(Session, pk=pk)
+        u = request.user
+        club = session.parent_club    
+        
+        if u not in club.members.all():
+            is_member = False
+            sesisons_list = club.sessions.all()
+
+            return render(request, 'home/club_detail.html', context={'club': club, 'sesisons_list':sesisons_list, 'is_member':is_member})
+
+        else:
+            is_member = True
+            club = session.parent_club
+            session.delete()
+            sesisons_list = club.sessions.all()
+            return render(request, 'home/club_detail.html', context={'club': club, 'sesisons_list':sesisons_list, 'is_member':is_member})    
+
 
 @login_required
 def session_add_user(request, pk):
@@ -307,12 +340,11 @@ def settle_session(request, pk):
                         member.settled_sum = mean_spent                       
                         acc = member.main_account
                         for s in acc.sums.all():
-                            if s.session == session:
-                                sum = s
-
-                        sum.current_sum = mean_spent   
+                            if s.parent_session == session:
+                                s.current_sum = mean_spent
+                                s.save()
+                                session.sums.add(s)
                         
-                        sum.save()
                         member.save()
 
                     session.status='c'
@@ -326,12 +358,11 @@ def settle_session(request, pk):
                     member.settled_sum = member.debit                        
                     acc = member.main_account
                     for s in acc.sums.all():
-                        if s.session == session:
-                            sum = s
-
-                    sum.current_sum = member.debit   
+                        if s.parent_session == session:
+                            s.current_sum = member.debit
+                            s.save()
+                            session.sums.add(s)                 
                     
-                    sum.save()
                     member.save()
 
                 session.status='c'
