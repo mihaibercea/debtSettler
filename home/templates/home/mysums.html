@@ -1,14 +1,53 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
   <h1>My debit. A list of all debts.</h1>
   {% if user.sums %}
   <ul>
     {% for sum in user.sums.all %}
       <li>              
-        Club: <a href="{{ sum.parent_session.parent_club.get_absolute_url }}">{{ sum.parent_session.parent_club.name }} </a>. Session: <a href="{{ sum.parent_session.get_absolute_url }}">{{ sum.parent_session.name }} </a>. Sum: {{ sum.current_sum }}. {% if sum.paid %} Paid {% else %} Not paid <button>Pay</button> {% endif %}</p>  
-       </li>
+        Club: <a href="{{ sum.parent_session.parent_club.get_absolute_url }}">{{ sum.parent_session.parent_club.name }} </a>. Session: <a href="{{ sum.parent_session.get_absolute_url }}">{{ sum.parent_session.name }} </a>. Sum: {{ sum.current_sum }}. {% if sum.paid %} Paid <button id="unpaySum" data-sumid="{{sum.id}}">Make "Not paid"</button> {% else %} Not paid <button id="paySum" data-sumid="{{sum.id}}">Pay</button> </p>  
+       </li> {% endif %}
     {% endfor %}
+
+    <script type="text/javascript">
+      $(document).on('click', '#paySum', function(){ 
+        var sum_id = $(this).attr("data-sumid");
+        $.ajax(
+        {
+            type:"GET",
+            url: "sum/"+ sum_id + "/pay",
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
+            },                
+            success: function(response) {
+              // Reload the page
+              location.reload();
+            },
+        })               
+      
+      });
+      $(document).on('click', '#unpaySum', function(){ 
+        var sum_id = $(this).attr("data-sumid");
+        $.ajax(
+        {
+            type:"GET",
+            url: "sum/"+ sum_id + "/unpay",
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
+            },                
+            success: function(response) {
+              // Reload the page
+              location.reload();
+            },
+        })               
+      
+      });
+    </script>
+    
     {% endif %}
   </ul>
   {% endblock %}
+
+

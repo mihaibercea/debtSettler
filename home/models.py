@@ -28,6 +28,10 @@ class Sum(models.Model):
     parent_session = models.ForeignKey('Session', on_delete = models.CASCADE, default=None)
     partial_paid = models.FloatField(default=0)
     paid = models.BooleanField(default=False)
+    time_created = models.DateField(default=timezone.now)
+    
+    class Meta:
+        ordering = ['-time_created']  
 
     def __str__(self):
         """String for representing the Model object."""

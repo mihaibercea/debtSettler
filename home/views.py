@@ -177,6 +177,42 @@ def add_member_debit(request, spk, mpk):
         return HttpResponse('Not a POST method')
 
 @login_required
+def pay_sum(request, pk):
+
+    u = request.user
+    sum = get_object_or_404(Sum, pk=pk)
+
+    #if u != sum.member:       
+    if u not in sum.parent_session.parent_club.members.all():    
+
+        return HttpResponseBadRequest('Invalid request')
+    
+    else:
+
+        sum.paid = True
+        sum.save()
+        return render(request, 'home\session_detail.html')
+    
+@login_required
+def unpay_sum(request, pk):
+
+    u = request.user
+    sum = get_object_or_404(Sum, pk=pk)
+
+    #if u != sum.member:       
+    if u not in sum.parent_session.parent_club.members.all():    
+
+        return HttpResponseBadRequest('Invalid request')
+    
+    else:
+
+        sum.paid = False
+        sum.save()
+        return render(request, 'home\session_detail.html')
+
+
+
+@login_required
 def create_session(request, pk):
 
     club = get_object_or_404(Club, pk=pk)
@@ -330,18 +366,14 @@ def settle_session(request, pk):
                     num_members += 1
 
                 if num_members > 0:
-                    mean_spent = total_spent / num_members
-                
-                    for member in session.members.all():
-                        member.settled_sum = mean_spent - member.debit
-                        member.save()
+                    mean_spent = total_spent / num_members 
 
                     for member in session.members.all():
-                        member.settled_sum = mean_spent                       
+                        member.settled_sum = member.debit - mean_spent
                         acc = member.main_account
                         for s in acc.sums.all():
                             if s.parent_session == session:
-                                s.current_sum = mean_spent
+                                s.current_sum = member.debit - mean_spent
                                 s.save()
                                 session.sums.add(s)
                         

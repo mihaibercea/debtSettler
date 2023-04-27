@@ -22,4 +22,8 @@ urlpatterns = [
     path('session/<str:pk>/settle', views.settle_session, name='settle-session'),
     path('club/session/<str:pk>/delete', views.delete_session, name='delete-session'),
     path('session/<str:spk>/<str:mpk>/debit', views.add_member_debit, name='add-member-debit'),  
+    path('session/sum/<str:pk>/pay', views.pay_sum, name='pay-sum'),  
+    path('session/sum/<str:pk>/unpay', views.unpay_sum, name='unpay-sum'),
+    path('mydebit/sum/<str:pk>/pay', views.pay_sum, name='pay-sum'),  
+    path('mydebit/sum/<str:pk>/unpay', views.unpay_sum, name='unpay-sum'),  
 ]
