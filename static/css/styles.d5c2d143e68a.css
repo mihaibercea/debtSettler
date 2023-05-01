@@ -202,18 +202,14 @@ li form input[type="submit"]:hover {
   font-weight: bold;
 }
 
+.green {
+  color: #33cc33;
+}
+
 .payment-status {
   margin-right: 10px;
 }
 
 .payment-action {
   margin-left: 10px;
-}
-
-.badge.bg-success {
-  --bs-success-rgb: 220, 53, 69;
-}
-
-.badge.bg-primary {
-  --bs-primary-rgb: 40, 167, 69;
 }

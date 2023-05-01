@@ -2,62 +2,83 @@
 
 {% block content %}
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-  <h1>My ballance. A list of all debts.</h1>
-  {% if user.sums %}
-  <ul>
-    {% for sum in user.sums.all %}
-      <li>              
-        Club: <a href="{{ sum.parent_session.parent_club.get_absolute_url }}">{{ sum.parent_session.parent_club.name }} </a>. Session: <a href="{{ sum.parent_session.get_absolute_url }}">{{ sum.parent_session.name }} </a>. Sum: {{ sum.current_sum|floatformat:2 }}. {% if sum.paid %} Paid <button id="unpaySum" data-sumid="{{sum.id}}">Make "Not paid"</button> {% else %} Not paid <button id="paySum" data-sumid="{{sum.id}}">Make "Paid"</button> </p>  
-       </li> {% endif %}
-    {% endfor %}
-
-    <script type="text/javascript">
-      $(document).on('click', '#paySum', function(){ 
-        var sum_id = $(this).attr("data-sumid");
-        $.ajax(
-        {
-            type:"GET",
-            url: "sum/"+ sum_id + "/pay",
-            headers: {
-              'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
-            },                
-            success: function(response) {
-              // Reload the page
-              location.reload();
-            },
-        })               
-      
-      });
-      $(document).on('click', '#unpaySum', function(){ 
-        var sum_id = $(this).attr("data-sumid");
-        $.ajax(
-        {
-            type:"GET",
-            url: "sum/"+ sum_id + "/unpay",
-            headers: {
-              'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
-            },                
-            success: function(response) {
-              // Reload the page
-              location.reload();
-            },
-        })               
-      
-      });
-    </script>
+  <h1>My ballance</h1>
+  {% if user.sums %}    
     
-    <hr>
-      <p>Payments:</p>
+      <p><strong>Payments:</strong></p>
       {% for payment in user.payments.all %}
 
-      <p>{{payment.from_member}} has to give {{payment.value}} to {{payment.to_member}}</p>
+      <div class="payment-container">
+        <p><span class="payment-description">
+        <strong>{{ payment.from_member }}</strong> has to give <strong><span class="green">{{ payment.value|floatformat:2 }}</span></strong> to <strong>{{ payment.to_member }}</strong>
+        </span>
+        <span class="payment-status">
+        {% if payment.paid %}
+            <span class="badge bg-success">Paid</span>
+        {% else %}
+            <span class="badge bg-danger">Not paid</span>
+        {% endif %}
+        </span>
+        <span class="payment-action">
+        {% if payment.paid %}
+            <button class="btn btn-outline-primary" id="unpayPayment" data-paymentid="{{ payment.id }}">Make "Not paid"</button>
+        {% else %}
+            <button class="btn btn-outline-success" id="payPayment" data-paymentid="{{ payment.id }}">Make "Paid"</button>
+        {% endif %}
+        </p>
+    </span>
+    </div> 
 
       {% endfor %}
     <hr>
 
-    <p>To receive: {{to_receive}}</p>
-    <p>To give: {{to_give}}</p>
-    {% endif %}
+    <script type="text/javascript">
+
+      $(document).on('click', '#payPayment', function(){ 
+      var payment_id = $(this).attr("data-paymentid");
+      $.ajax(
+      {
+          type:"GET",
+          url: "payment/"+ payment_id + "/pay",
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
+          },                
+          success: function(response) {
+            // Reload the page
+            location.reload();
+          },
+      })                    
+    });                  
+   
+    $(document).on('click', '#unpayPayment', function(){ 
+      var payment_id = $(this).attr("data-paymentid");
+      $.ajax(
+      {
+          type:"GET",
+          url: "payment/"+ payment_id + "/unpay",
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
+          },                
+          success: function(response) {
+            // Reload the page
+            location.reload();
+          },
+      })                  
+    });
+
+    </script>
+
+    <p><strong>To receive: {{to_receive|floatformat:2}}</strong></p>
+    <p><strong>To give: {{to_give|floatformat:2}}</strong></p>
+  {% endif %}
+  <hr>
+  <p><strong>All sums:</strong></p>
+  <ul>
+    {% for sum in user.sums.all %}
+      <li>              
+        Club: <a href="{{ sum.parent_session.parent_club.get_absolute_url }}">{{ sum.parent_session.parent_club.name }} </a>||Session: <a href="{{ sum.parent_session.get_absolute_url }}">{{ sum.parent_session.name }} </a>|| Sum: {{ sum.current_sum|floatformat:2 }}. 
+       </li> 
+    {% endfor %}
   </ul>
   {% endblock %}
 

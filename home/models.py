@@ -29,7 +29,7 @@ class Payment(models.Model):
     value = models.FloatField(default=0)
 
     class Meta:
-        ordering = ['-time_created']  
+        ordering = ['id']  
 
     def __str__(self):
         """String for representing the Model object."""

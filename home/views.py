@@ -65,13 +65,13 @@ def mysums(request):
     to_give = 0
     to_receive = 0
 
-    for s in user.sums.all():
+    for p in user.payments.all():
 
-        if s.paid==False:
-            if s.current_sum < 0:
-                to_give+=s.current_sum
+        if p.paid==False:
+            if p.to_member == user:
+                to_give+=p.value
             else:
-                to_receive+=s.current_sum
+                to_receive+=p.value
 
     return render(request, 'home/mysums.html', context={'user': user, 'to_give':to_give, 'to_receive':to_receive})
 
@@ -116,7 +116,7 @@ class ClubDetailView(LoginRequiredMixin, generic.DetailView):
                         
         else:
             is_member = True
-            helper_text = "Hello " + str(u.username) + ". Welcome to club: " + club.name            
+            helper_text = "Hello, " + str(u.username) + ". Welcome to " + club.name            
             sessions_list = club.sessions.all()
             context['is_member'] = is_member
             context['sessions_list'] = sessions_list
@@ -200,7 +200,7 @@ def remove_session_member(request, spk, mpk):
     session = get_object_or_404(Session, pk=spk)    
     member = get_object_or_404(SessionMember, pk=mpk)
 
-    if request.method != 'DELETE':
+    if request.method != 'GET':
         return HttpResponseBadRequest('Invalid request')
 
     else:      
@@ -210,7 +210,7 @@ def remove_session_member(request, spk, mpk):
         
         else:  
 
-            if request.method == 'DELETE':
+            if request.method == 'GET':
                 for s in session.sums.all():
                     if s.member == member.main_account:
                         s.delete()
@@ -282,6 +282,40 @@ def unpay_sum(request, pk):
         sum.paid = False
         sum.save()
         return render(request, 'home\session_detail.html')
+    
+@login_required
+def pay_payment(request, pk):
+
+    u = request.user
+    payment = get_object_or_404(Payment, pk=pk)
+
+    #if u != sum.member:       
+    if u not in payment.parent_session.parent_club.members.all():    
+
+        return HttpResponseBadRequest('Invalid request')
+    
+    else:
+
+        payment.paid = True
+        payment.save()
+        return render(request, 'home\session_detail.html')
+    
+@login_required
+def unpay_payment(request, pk):
+
+    u = request.user
+    payment= get_object_or_404(Payment, pk=pk)
+
+    #if u != sum.member:       
+    if u not in payment.parent_session.parent_club.members.all():    
+
+        return HttpResponseBadRequest('Invalid request')
+    
+    else:
+
+        payment.paid = False
+        payment.save()
+        return render(request, 'home\session_detail.html')
 
 @login_required
 def make_payments(request, pk):
@@ -303,14 +337,14 @@ def make_payments(request, pk):
             val = sum.current_sum
             if sum.current_sum > 0:
                 plus_sums.append([sum, val])
-            else:
+            elif sum.current_sum < 0:
                 minus_sums.append([sum, val])
             session_bias+=val
         
         session.bias = session_bias
 
-        while len(plus_sums)>0 or len(minus_sums)>0:
-            if abs(minus_sums[0][1]) == plus_sums[0][1]:
+        while len(plus_sums)>0 and len(minus_sums)>0:            
+            if abs(abs(minus_sums[0][1]) - plus_sums[0][1]) <= 0.01:
                 payment = Payment(
                     from_member = minus_sums[0][0].member,
                     to_member = plus_sums[0][0].member,
@@ -361,11 +395,9 @@ def make_payments(request, pk):
                 plus_sums[0][0].member.payments.add(payment)
                 plus_sums[0][0].member.save()
                 plus_sums[0][1]+=minus_sums[0][1]
-                minus_sums.pop(0)
+                minus_sums.pop(0)        
 
-
-        
-        return render(request, 'home\session_detail.html')
+        return redirect('home:session-detail', pk=session.pk)
 
 @login_required
 def create_session(request, pk):
@@ -430,6 +462,8 @@ def delete_session(request, pk):
         else:
             is_member = True
             club = session.parent_club
+            for payment in session.payments.all():
+                payment.delete()                    
             session.delete()
             sesisons_list = club.sessions.all()
             return render(request, 'home/club_detail.html', context={'club': club, 'sesisons_list':sesisons_list, 'is_member':is_member})    
@@ -562,6 +596,8 @@ def settle_session(request, pk):
             for sum in session.sums.all():
                 sum.paid = False
                 sum.save()
+            for payment in session.payments.all():
+                payment.delete()                
             session.save()
             return redirect('home:session-detail', pk=session.id)
 

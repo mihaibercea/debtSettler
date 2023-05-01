@@ -1,78 +1,61 @@
 {% extends "base_generic.html" %}
-
 {% block content %}
-  <h1>Name: {{ club.name }}</h1>
-
-  <p><strong>Owner:</strong> <a href="">{{ club.owner }}</a></p> <!-- author detail link not yet defined --> 
-  <p> {{ helper_text }} </p>
-
-  {% if is_member %}
-
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-  <div style="margin-left:20px;margin-top:20px">
-    <h4>Members</h4>   
-        
-        <hr>
-        <ul>
-          {% for member in club.members.all %}
-            <li>
-              <p >{{ member.username }}</p>
-            </li>
-          {% endfor %}        
-        </ul>      
-        <p >
-          Whant to invite someone?  <a href="{{ club.get_absolute_url }}/invite"> Invite</a>
-        </p>     
-        
-    <hr>
-
-    <h4>Sessions</h4>        
-
-        <ul>
-          {% for session in sessions_list.all %}
-            <li>
-              <a href="{{ session.get_absolute_url }}">{{ session.name }}</a><button class="sessionDelete" data-session_id = {{session.id}}>Delete</button>
-            </li>
-          {% endfor %}        
-      </ul>    
-      
-      <script type="text/javascript">              
-        $(document).on('click', '.sessionDelete', function(){
-            //var csrf_token = $('[name="csrfmiddlewaretoken"]').val(); // Get the CSRF token from the HTML form
-            var session_id = $(this).attr('data-session_id');
-            $.ajax({
-                type: "DELETE",
-                url: "session/" +session_id + "/delete",
-                headers: {
-                  'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
-                },     
-                success: function(response) {
-                    // Reload the page
-                    location.reload();
-                },
-            });
-        });
-      </script>
-
-      <a class="addSession", href = "{{club.get_absolute_url }}/create-session">Add Session</a>
-            
-  </div>  
-
-
-
-  {% else %}
-
-  <p> You are not part of the club. Would you like to join the club? </p>
-  <button> Request to join </button> 
-
-  {% endif %}  
-  
-  <div style = " position: fixed;  bottom: 0;">
-  <p><a href = "{{ club.get_absolute_url }}/update">Do you want to edit the club?</a></p>
-
-  <hr>
-  <p><a href = "{{ club.get_absolute_url }}/delete">Do you want to delete the club?</a></p>
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h1 class="text-center">{{ club.name }}</h1>
+          </div>
+          <div class="card-body">
+            <p><strong>Owner:</strong> <a href="">{{ club.owner }}</a></p> <!-- author detail link not yet defined --> 
+            <p class="mb-3"> {{ helper_text }} </p>
+            {% if is_member %}
+              <h4 class="mb-3">Members</h4>   
+              <ul class="list-group mb-3">
+                {% for member in club.members.all %}
+                  <li class="list-group-item">{{ member.username }}</li>
+                {% endfor %}        
+              </ul>  
+              <p class="mb-3">
+                Want to invite someone?  <a href="{{ club.get_absolute_url }}/invite"> Invite</a>
+              </p>  
+              <hr>
+              <h4 class="mb-3">Sessions</h4>        
+              <ul class="list-group">
+                {% for session in sessions_list.all %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <a href="{{ session.get_absolute_url }}">{{ session.name }}</a>
+                    <button class="btn btn-sm btn-danger sessionDelete" data-session_id="{{ session.id }}">Delete</button>
+                  </li>
+                {% endfor %}        
+              </ul>    
+              <script type="text/javascript">              
+                $(document).on('click', '.sessionDelete', function(){
+                    var session_id = $(this).attr('data-session_id');
+                    $.ajax({
+                        type: "DELETE",
+                        url: "session/" +session_id + "/delete",
+                        headers: {
+                          'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
+                        },     
+                        success: function(response) {
+                            location.reload();
+                        },
+                    });
+                });
+              </script>
+              <a class="btn btn-primary mt-3" href="{{club.get_absolute_url }}/create-session">Add Session</a>
+              <!-- <p><a href="{{ club.get_absolute_url }}/update">Do you want to edit the club?</a></p> -->
+              <p><a href="{{ club.get_absolute_url }}/delete">Do you want to delete the club?</a></p>
+            {% else %}
+              <p class="mb-3"> You are not part of the club. Would you like to join the club? </p>
+              <button class="btn btn-primary">Request to join (NOT FUNCTIONAL YET!)</button>
+              <p>Please ask any member for an invite</p>
+            {% endif %}           
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-  <h1>My invites List</h1>
+  <h1>My invites</h1>
   {% if user.invites_received %}
   <ul>
     {% for invite in user.invites_received.all reversed %}

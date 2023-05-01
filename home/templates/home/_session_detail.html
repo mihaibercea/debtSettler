@@ -6,23 +6,22 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
     {% if session.type == "s" %}
-    <div class="session-header session-split-sum">
-        <h1>Split Sum Session:</h1>
-        <h2>{{ session.name }}</h2>
-    </div>
-    {% else %}
-    <div class="session-header session-zero-sum">
-        <h1>Zero Sum Session:</h1>
-        <h2>{{ session.name }}</h2>
-    </div>
+  
+      <h1>Split sum Session: {{ session.name }}</h1>
+    
+    {% else %}      
+      
+    <h1>Zero sum Session: {{ session.name }}</h1>
+
     {% endif %}
 
-    {% if session.status == "o" %}
-    <button class="btn btn-primary session-settle" onclick="location.href='{{ session.get_absolute_url }}/settle';">Settle</button>
-    {% elif session.status == "c" %}
-    <button class="btn btn-warning session-reopen" onclick="location.href='{{ session.get_absolute_url }}/settle';">Reopen</button>
-    {% endif %}
-
+      {% if session.status == "o" %}
+      <button class = "settle-session", onclick = "location.href ='{{session.get_absolute_url}}/settle';">Settle</button>
+      {% endif %}
+      {% if session.status == "c" %}
+      <button class = "settle-session", onclick = "location.href ='{{session.get_absolute_url}}/settle';">Reopen</button>
+      {% endif %} 
+      <br>
       <a href = "{{session.parent_club.get_absolute_url}}">Club: {{ session.parent_club.name }}</a>
     
       <div style="margin-left:20px;margin-top:20px">
@@ -56,7 +55,7 @@
                   var session_id = $(this).attr("data-sessionid");
                   $.ajax(
                   {
-                      type:"GET",
+                      type:"DELETE",
                       url: session_id + "/" + session_member_id + "/remove",
                       headers: {
                         'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
@@ -75,57 +74,41 @@
                   <li class="sum-item">
                     <div class="sum-username highlight">{{sum.member.username}} :</div>
                     <div class="sum-amount">{{ sum.current_sum|floatformat:2 }}</div>
-                    <!-- <div class="sum-paid {% if sum.paid %}paid{% else %}not-paid{% endif %}">
+                    <div class="sum-paid {% if sum.paid %}paid{% else %}not-paid{% endif %}">
                       {% if sum.paid %}
                       Paid <button class="btn btn-outline-primary" id="unpaySum" data-sumid="{{sum.id}}">Make "Not paid"</button>
                       {% else %}
                       Not paid <button class="btn btn-outline-success" id="paySum" data-sumid="{{sum.id}}">Make "Paid"</button>
                       {% endif %}
-                    </div> -->
+                    </div>
                   </li>
                   {% endfor %}
                 </ul>
               </div>
-              <p> <span class="member-name"> Bias: {{session.bias|floatformat:2}} </span> (Negative -> more money needs to be given than received. Positive -> more money needs to be received than given )</p>
-              <br>
-              <hr>
+                
               <div>
-                <p><strong>Payments:<strong></p>  
-                {% if session.payments.count > 0 %} 
-                    {% for payment in session.payments.all %}
-                    <div class="payment-container">
-                        <p><span class="payment-description">
-                        <strong>{{ payment.from_member }}</strong> has to give <strong><span class="green">{{ payment.value|floatformat:2 }}</span></strong> to <strong>{{ payment.to_member }}</strong>
-                        </span>
-                        <span class="payment-status">
-                        {% if payment.paid %}
-                            <span class="badge bg-success">Paid</span>
-                        {% else %}
-                            <span class="badge bg-danger">Not paid</span>
-                        {% endif %}
-                        </span>
-                        <span class="payment-action">
-                        {% if payment.paid %}
-                            <button class="btn btn-outline-primary" id="unpayPayment" data-paymentid="{{ payment.id }}">Make "Not paid"</button>
-                        {% else %}
-                            <button class="btn btn-outline-success" id="payPayment" data-paymentid="{{ payment.id }}">Make "Paid"</button>
-                        {% endif %}
-                        </p>
-                    </span>
-                    </div>          
-                    {% endfor %}
+                {% if session.payments.count > 0 %}
+                  <p>Payments:</p>
+                  {% for payment in session.payments.all %}
+
+                  <p>{{payment.from_member}} has to give {{payment.value}} to {{payment.to_member}}</p>
+            
+                  {% endfor %}
+                
                 {% else %}
-                <button class="btn btn-outline-success" onclick="location.href='{{session.get_absolute_url}}/make-payments'">Make payments</button>
-                {% endif %}  
-                </div>
+                  <a href="{{session.get_absolute_url}}/make-payments">Make payments</a>
+                {% endif %}
+
+              </div>
+
                 <script type="text/javascript">
 
-                    $(document).on('click', '#payPayment', function(){ 
-                    var payment_id = $(this).attr("data-paymentid");
+                    $(document).on('click', '#paySum', function(){ 
+                    var sum_id = $(this).attr("data-sumid");
                     $.ajax(
                     {
                         type:"GET",
-                        url: "payment/"+ payment_id + "/pay",
+                        url: "sum/"+ sum_id + "/pay",
                         headers: {
                           'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
                         },                
@@ -136,12 +119,12 @@
                     })                    
                   });                  
                  
-                  $(document).on('click', '#unpayPayment', function(){ 
-                    var payment_id = $(this).attr("data-paymentid");
+                  $(document).on('click', '#unpaySum', function(){ 
+                    var sum_id = $(this).attr("data-sumid");
                     $.ajax(
                     {
                         type:"GET",
-                        url: "payment/"+ payment_id + "/unpay",
+                        url: "sum/"+ sum_id + "/unpay",
                         headers: {
                           'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
                         },                
@@ -191,8 +174,6 @@
       </script>
       {% endif %}
 
-    <br>
-    <hr>
     <h4>Details:</h4>
           
     <p >

@@ -210,10 +210,10 @@ li form input[type="submit"]:hover {
   margin-left: 10px;
 }
 
-.badge.bg-success {
-  --bs-success-rgb: 220, 53, 69;
+.payment-status .bg-success {
+  background-color: green;
 }
 
-.badge.bg-primary {
-  --bs-primary-rgb: 40, 167, 69;
+.payment-status .bg-primary {
+  background-color: red;
 }

@@ -1,0 +1,78 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Name: {{ club.name }}</h1>
+
+  <p><strong>Owner:</strong> <a href="">{{ club.owner }}</a></p> <!-- author detail link not yet defined --> 
+  <p> {{ helper_text }} </p>
+
+  {% if is_member %}
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <div style="margin-left:20px;margin-top:20px">
+    <h4>Members</h4>   
+        
+        <hr>
+        <ul>
+          {% for member in club.members.all %}
+            <li>
+              <p >{{ member.username }}</p>
+            </li>
+          {% endfor %}        
+        </ul>      
+        <p >
+          Whant to invite someone?  <a href="{{ club.get_absolute_url }}/invite"> Invite</a>
+        </p>     
+        
+    <hr>
+
+    <h4>Sessions</h4>        
+
+        <ul>
+          {% for session in sessions_list.all %}
+            <li>
+              <a href="{{ session.get_absolute_url }}">{{ session.name }}</a><button class="sessionDelete" data-session_id = {{session.id}}>Delete</button>
+            </li>
+          {% endfor %}        
+      </ul>    
+      
+      <script type="text/javascript">              
+        $(document).on('click', '.sessionDelete', function(){
+            //var csrf_token = $('[name="csrfmiddlewaretoken"]').val(); // Get the CSRF token from the HTML form
+            var session_id = $(this).attr('data-session_id');
+            $.ajax({
+                type: "DELETE",
+                url: "session/" +session_id + "/delete",
+                headers: {
+                  'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
+                },     
+                success: function(response) {
+                    // Reload the page
+                    location.reload();
+                },
+            });
+        });
+      </script>
+
+      <a class="addSession", href = "{{club.get_absolute_url }}/create-session">Add Session</a>
+            
+  </div>  
+
+
+
+  {% else %}
+
+  <p> You are not part of the club. Would you like to join the club? </p>
+  <button> Request to join </button> 
+
+  {% endif %}  
+  
+  <div style = " position: fixed;  bottom: 0;">
+  <p><a href = "{{ club.get_absolute_url }}/update">Do you want to edit the club?</a></p>
+
+  <hr>
+  <p><a href = "{{ club.get_absolute_url }}/delete">Do you want to delete the club?</a></p>
+  </div>
+
+{% endblock %}

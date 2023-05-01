@@ -187,3 +187,25 @@ li form input[type="submit"]:hover {
 .sidebar-nav li:last-child {
   border-bottom: none;
 }
+
+.payment-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f2f2f2;
+  padding: 10px;
+  margin-bottom: 5px;
+}
+
+.payment-description {
+  font-weight: bold;
+}
+
+.payment-status {
+  margin-right: 10px;
+}
+
+.payment-action {
+  margin-left: 10px;
+}

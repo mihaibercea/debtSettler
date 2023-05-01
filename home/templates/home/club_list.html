@@ -1,19 +1,22 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-  <h1>Club List</h1>
-  {% if club_list %}
-  <ul>
-    {% for club in club_list %}
-      <li>
-        <a href="{{ club.get_absolute_url }}">{{ club.name }}</a> ({{club.owner}})
-      </li>
-    {% endfor %}
-  </ul>
-  {% else %}
-    <p>There are no clubs yet.</p>
-  {% endif %}
-
-  <a href=" {% url 'home:club-create' %} ">Want to create a Club?</a>
-
+  <div class="container">
+    <h1 class="my-4">Club List</h1>
+    {% if club_list %}
+      <ul class="list-group">
+        {% for club in club_list %}
+        <a href="{{ club.get_absolute_url }}" class="list-group-item list-group-item-action">
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ club.name }}</h5>
+            <span class="badge bg-secondary rounded-pill">{{club.owner}}</span>
+          </div>
+        </a>
+      {% endfor %}
+      </ul>
+    {% else %}
+      <p>There are no clubs yet.</p>
+    {% endif %}
+    <a href="{% url 'home:club-create' %}" class="btn btn-primary mt-3">Want to create a Club?</a>
+  </div>
 {% endblock %}
