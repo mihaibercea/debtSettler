@@ -8,61 +8,6 @@
     {% if session.type == "s" %}
   
       <h1>Split sum Session: {{ session.name }}</h1>
-
-      <!-- {% if session.status == "o" %}
-      <button class = "settle-session", onclick = "location.href ='{{session.get_absolute_url}}/settle';">Settle</button>
-      {% endif %}
-      {% if session.status == "c" %}
-      <button class = "settle-session", onclick = "location.href ='{{session.get_absolute_url}}/settle';">Reopen</button>
-      {% endif %} 
-      <br>
-      <a href = "{{session.parent_club.get_absolute_url}}">Club: {{ session.parent_club.name }}</a>
-
-    
-      <div style="margin-left:20px;margin-top:20px">
-        <h4>Members</h4>   
-            
-            <hr> 
-
-            <div id = "members-list">
-            
-              <ul>
-                {% for member in session.members.all %}
-                
-                <li>
-            
-                  <p>{{ member.name }}</p>
-                  {% if session.status == "o" %}
-                  <p>Current Debit: {{member.debit}}</p>
-                  <form action="{% url 'home:add-member-debit' session.id member.id %}" method="POST">
-                    {% csrf_token %}
-                  
-                        {{ form_debit }}
-                    
-                    <input type="submit" value="Submit">
-                </form>
-                  {% endif %}
-                  {% if session.status == "c" %}
-                  <p>Final Debit: {{member.debit}}</p>
-                  <p>Settled Sum: {{member.settled_sum}}</p>
-                  {% endif %}    
-                
-                </li>
-                <hr>
-                {% endfor %}
-              </ul>
-
-            </div>
-
-            <button class = "addmembers" >Add Members</button>
-
-            <div id = "members-to-invite">
-
-            </div>        
-          
-            <hr>   
-
-      </div>      -->
     
     {% else %}      
       
@@ -80,40 +25,85 @@
       <a href = "{{session.parent_club.get_absolute_url}}">Club: {{ session.parent_club.name }}</a>
     
       <div style="margin-left:20px;margin-top:20px">
-        <h4>Member debts</h4>   
-            
-            <hr> 
-
+        <h4>Member debts</h4>
             <div id = "members-list">
               
-              {% if session.status == "o" %}
-
-                <ul>
-                {% for member in session.members.all %}                
-                <li>            
-                  <p>{{ member.name }}. Current Debit: {{member.debit}}</p>
-
-                  <form action="{% url 'home:add-member-debit' session.id member.id %}" method="POST">
-                    {% csrf_token %}                  
-                        {{ form_debit }}                    
-                    <input type="submit" value="Submit">
-                  </form>                 
-                </li>
-                <hr>
-                {% endfor %}                
-                </ul>
-
-              {% else %}
-                <ul>
-                  {% for sum in session.sums.all %}                  
-                  <li>            
-                    <p>{{sum.member.username}} : {{ sum.current_sum }}. {% if sum.paid %} Paid <button id="unpaySum" data-sumid="{{sum.id}}">Make "Not paid"</button> {% else %} Not paid <button id="paySum" data-sumid="{{sum.id}}">Pay</button> {% endif %}</p>       
-                  </li>                  
+              {% if session.status == "o" %}              
+              <div class="sums-container">
+                <ul class="members-list">
+                  {% for member in session.members.all %}                
+                    <li>
+                      <p><span class="member-name">{{ member.name }}</span> Current Debit: <span class="member-debit">{{member.debit}} </span> <button class="btn-remove" data-memberid="{{member.id}}" data-sessionid="{{session.id}}">Remove</button>
+                        <form action="{% url 'home:plus-debit' session.id member.id %}" method="POST">
+                          {% csrf_token %}                  
+                          {{ plus_debit }}                    
+                          <input type="submit" value="Submit">
+                        </form>                        
+                        <form action="{% url 'home:add-member-debit' session.id member.id %}" method="POST">
+                          {% csrf_token %}                  
+                          {{ form_debit }}                    
+                          <input type="submit" value="Submit">
+                        </form>
+                      </p>
+                    </li>                
                   {% endfor %}                
                 </ul>
+              </div>
+              <script>
+                $('.btn-remove').click(function(){
+                  var session_member_id = $(this).attr("data-memberid");
+                  var session_id = $(this).attr("data-sessionid");
+                  $.ajax(
+                  {
+                      type:"DELETE",
+                      url: session_id + "/" + session_member_id + "/remove",
+                      headers: {
+                        'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
+                      },                
+                      success: function(response) {
+                        // Reload the page
+                        location.reload();
+                      },
+                  }) 
+                });
+              </script>
+              {% else %}
+              <div class="sums-container">
+                <ul class="sums-list">
+                  {% for sum in session.sums.all %}
+                  <li class="sum-item">
+                    <div class="sum-username highlight">{{sum.member.username}} :</div>
+                    <div class="sum-amount">{{ sum.current_sum|floatformat:2 }}</div>
+                    <div class="sum-paid {% if sum.paid %}paid{% else %}not-paid{% endif %}">
+                      {% if sum.paid %}
+                      Paid <button class="btn btn-outline-primary" id="unpaySum" data-sumid="{{sum.id}}">Make "Not paid"</button>
+                      {% else %}
+                      Not paid <button class="btn btn-outline-success" id="paySum" data-sumid="{{sum.id}}">Make "Paid"</button>
+                      {% endif %}
+                    </div>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
                 
+              <div>
+                {% if session.payments.count > 0 %}
+                  <p>Payments:</p>
+                  {% for payment in session.payments.all %}
+
+                  <p>{{payment.from_member}} has to give {{payment.value}} to {{payment.to_member}}</p>
+            
+                  {% endfor %}
+                
+                {% else %}
+                  <a href="{{session.get_absolute_url}}/make-payments">Make payments</a>
+                {% endif %}
+
+              </div>
+
                 <script type="text/javascript">
-                  $(document).on('click', '#paySum', function(){ 
+
+                    $(document).on('click', '#paySum', function(){ 
                     var sum_id = $(this).attr("data-sumid");
                     $.ajax(
                     {
@@ -126,9 +116,9 @@
                           // Reload the page
                           location.reload();
                         },
-                    })               
-                  
-                  });
+                    })                    
+                  });                  
+                 
                   $(document).on('click', '#unpaySum', function(){ 
                     var sum_id = $(this).attr("data-sumid");
                     $.ajax(
@@ -142,8 +132,7 @@
                           // Reload the page
                           location.reload();
                         },
-                    })               
-                  
+                    })                  
                   });  
 
                 </script>
@@ -151,19 +140,11 @@
               {% endif %}
 
             </div>
-
-            <hr>
-            <button class = "addmembers" >Add Members</button>
-
-            <div id = "members-to-invite">
-
-            </div>        
-          
-            <hr>        
-
-      </div>                  
       
-
+      {% if session.status == "o" %}       
+      <button class = "addmembers" >Add Members</button>
+      <div id = "members-to-invite">  
+      </div>   
       <script type="text/javascript">
       $(document).on('click', '#add_member', function(){          
         var user = $(this).attr("data-username");
@@ -188,11 +169,11 @@
       });
 
       $('.addmembers').click(function(){      
-        document.getElementById("members-to-invite").innerHTML = "<ul> {% for member in session.parent_club.members.all %} <li> <p> {{member.username}} </p>  <button id = \"add_member\", data-username = \"{{member.username}}\", data-session-id =\"{{session.id}}\", data-user-id = \"{{member.id}}\" > + </button> </li> {% endfor %} </ul>";    
+        document.getElementById("members-to-invite").innerHTML = "<ul> {% for member in session.parent_club.members.all %} <li> <button id = \"add_member\", data-username = \"{{member.username}}\", data-session-id =\"{{session.id}}\", data-user-id = \"{{member.id}}\" > + {{member.username}} </button> </li> {% endfor %} </ul>";    
       });
-    </script>
+      </script>
+      {% endif %}
 
-    
     <h4>Details:</h4>
           
     <p >

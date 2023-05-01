@@ -1,0 +1,62 @@
+.sums-container {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.sums-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sum-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.sum-username {
+  margin-right: 20px;
+  font-weight: bold;
+}
+
+.sum-amount {
+  margin-right: 20px;
+}
+
+.sum-paid {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.sum-paid.not-paid {
+  color: red;
+}
+
+.sum-paid.paid {
+  color: green;
+}
+.btn {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.btn.red {
+  background-color: #FF0000;
+}
+
+.btn:hover {
+  background-color: #3e8e41;
+}

@@ -28,4 +28,8 @@ class SessionForm(forms.Form):
 
 class DebitForm(forms.Form):
 
-    debit = forms.FloatField(label = 'Debit')
+    debit = forms.FloatField(label = 'Final Debit')
+
+class PluslDebit(forms.Form):
+
+    plus_debit = forms.FloatField(label = 'Add more Debit')

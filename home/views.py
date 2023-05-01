@@ -7,7 +7,7 @@ from django.contrib.auth import views
 from accounts.models import CustomUser
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from home.models import Club, Session, Invite, SessionMember, Sum
+from home.models import Club, Session, Invite, SessionMember, Sum, Payment
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from accounts.models import CustomUser
 
@@ -16,7 +16,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from .forms import InviteForm, ZeroSumForm, SessionForm
+from .forms import InviteForm, ZeroSumForm, SessionForm, PluslDebit, DebitForm
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormMixin
 import json
@@ -61,8 +61,19 @@ def myinvites_list(request):
 
 @login_required
 def mysums(request):    
-    user = request.user 
-    return render(request, 'home/mysums.html', context={'user': user})
+    user = request.user
+    to_give = 0
+    to_receive = 0
+
+    for s in user.sums.all():
+
+        if s.paid==False:
+            if s.current_sum < 0:
+                to_give+=s.current_sum
+            else:
+                to_receive+=s.current_sum
+
+    return render(request, 'home/mysums.html', context={'user': user, 'to_give':to_give, 'to_receive':to_receive})
 
 
 @login_required
@@ -159,22 +170,84 @@ def test_view(request):
 
 @login_required
 def add_member_debit(request, spk, mpk):
+    u = request.user
     session = get_object_or_404(Session, pk=spk)    
     member = get_object_or_404(SessionMember, pk=mpk)
 
+    #if u != sum.member:       
+    if u not in session.parent_club.members.all():     
 
-    if request.method == 'POST':
-        form = ZeroSumForm(request.POST)
-        if form.is_valid():
+        return HttpResponseBadRequest('Invalid request')
+    
+    else:   
 
-            new_debit = form.cleaned_data['debit']
-            member.debit = new_debit
-            member.save()
+        if request.method == 'POST':
+            form = DebitForm(request.POST)
+            if form.is_valid():
 
-            #return render(request, 'session_detail.html', context={'form':form, 'session':session})
-            return redirect('home:session-detail', pk=session.id)
-    else:        
-        return HttpResponse('Not a POST method')
+                new_debit = form.cleaned_data['debit']
+                member.debit = new_debit
+                member.save()
+
+                #return render(request, 'session_detail.html', context={'form':form, 'session':session})
+                return redirect('home:session-detail', pk=session.id)
+        else:        
+            return HttpResponse('Not a POST method')
+@login_required
+def remove_session_member(request, spk, mpk):
+
+    u = request.user
+    session = get_object_or_404(Session, pk=spk)    
+    member = get_object_or_404(SessionMember, pk=mpk)
+
+    if request.method != 'DELETE':
+        return HttpResponseBadRequest('Invalid request')
+
+    else:      
+        if u not in session.parent_club.members.all():     
+
+            return HttpResponseBadRequest('Invalid request')
+        
+        else:  
+
+            if request.method == 'DELETE':
+                for s in session.sums.all():
+                    if s.member == member.main_account:
+                        s.delete()
+                        member.main_account.save()                        
+                        break
+                member.delete()
+                session.save()
+
+                #return render(request, 'session_detail.html', context={'form':form, 'session':session})
+                return redirect('home:session-detail', pk=session.id)
+            else:        
+                return HttpResponse('Not a DELETE method')
+            
+
+@login_required
+def plus_debit(request, spk, mpk):
+
+    u = request.user 
+    session = get_object_or_404(Session, pk=spk)    
+    member = get_object_or_404(SessionMember, pk=mpk)  
+    #if u != sum.member:       
+    if u not in session.parent_club.members.all():    
+
+        return HttpResponseBadRequest('Invalid request')
+    
+    else:
+
+        if request.method == 'POST':
+            form = PluslDebit(request.POST)
+            if form.is_valid():                 
+                member.debit = member.debit + form.cleaned_data['plus_debit']
+                member.save()
+
+                #return render(request, 'session_detail.html', context={'form':form, 'session':session})
+                return redirect('home:session-detail', pk=session.id)
+        else:        
+            return HttpResponse('Not a POST method')
 
 @login_required
 def pay_sum(request, pk):
@@ -210,7 +283,89 @@ def unpay_sum(request, pk):
         sum.save()
         return render(request, 'home\session_detail.html')
 
+@login_required
+def make_payments(request, pk):
 
+    u = request.user    
+    session = get_object_or_404(Session, pk=pk)
+
+    #if u != sum.member:       
+    if u not in session.parent_club.members.all():    
+
+        return HttpResponseBadRequest('Invalid request')
+    
+    else:
+        session_bias = 0
+        plus_sums = []
+        minus_sums = []
+
+        for sum in session.sums.all():
+            val = sum.current_sum
+            if sum.current_sum > 0:
+                plus_sums.append([sum, val])
+            else:
+                minus_sums.append([sum, val])
+            session_bias+=val
+        
+        session.bias = session_bias
+
+        while len(plus_sums)>0 or len(minus_sums)>0:
+            if abs(minus_sums[0][1]) == plus_sums[0][1]:
+                payment = Payment(
+                    from_member = minus_sums[0][0].member,
+                    to_member = plus_sums[0][0].member,
+                    parent_session = session,
+                    value = plus_sums[0][1]
+                )
+                payment.save()
+                session.payments.add(payment)
+                session.save()
+                minus_sums[0][0].member.payments.add(payment)
+                minus_sums[0][0].member.save()
+                plus_sums[0][0].member.payments.add(payment)
+                plus_sums[0][0].member.save()
+                minus_sums.pop(0)
+                plus_sums.pop(0)
+
+            elif abs(minus_sums[0][1]) > plus_sums[0][1]:
+
+                payment = Payment(
+                    from_member = minus_sums[0][0].member,
+                    to_member = plus_sums[0][0].member,
+                    parent_session = session,
+                    value = plus_sums[0][1]
+                )
+                payment.save()         
+                session.payments.add(payment)
+                session.save()
+                minus_sums[0][0].member.payments.add(payment)
+                minus_sums[0][0].member.save()
+                plus_sums[0][0].member.payments.add(payment)
+                plus_sums[0][0].member.save()       
+                minus_sums[0][1]+=plus_sums[0][1]
+                plus_sums.pop(0)
+
+            else:
+
+                payment = Payment(
+                    from_member = minus_sums[0][0].member,
+                    to_member = plus_sums[0][0].member,
+                    parent_session = session,
+                    value = abs(minus_sums[0][1])
+                )
+                payment.save()
+                session.payments.add(payment)
+                session.save()
+                minus_sums[0][0].member.payments.add(payment)
+                minus_sums[0][0].member.save()
+                plus_sums[0][0].member.payments.add(payment)
+                plus_sums[0][0].member.save()
+                plus_sums[0][1]+=minus_sums[0][1]
+                minus_sums.pop(0)
+
+
+        
+        return render(request, 'home\session_detail.html')
 
 @login_required
 def create_session(request, pk):
@@ -404,6 +559,9 @@ def settle_session(request, pk):
         elif session.status =='c':
 
             session.status='o'
+            for sum in session.sums.all():
+                sum.paid = False
+                sum.save()
             session.save()
             return redirect('home:session-detail', pk=session.id)
 
@@ -475,7 +633,8 @@ class SessionDetailView(LoginRequiredMixin, FormMixin, generic.DetailView):
         
         context['is_member'] = is_member
         context['session'] = session
-        context['form_debit'] = ZeroSumForm(initial={'parent_session': self.object})
+        context['form_debit'] = DebitForm(initial={'parent_session': self.object})
+        context['plus_debit'] = PluslDebit(initial={'parent_session': self.object})
         return context
 
     # def post(self, request, *args, **kwargs):

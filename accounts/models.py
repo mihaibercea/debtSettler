@@ -12,6 +12,8 @@ class CustomUser(AbstractUser):
 
     sums = models.ManyToManyField('home.Sum', help_text='Sums assinged to this user')
 
+    payments = models.ManyToManyField('home.payment', help_text='Payments involving this user')
+
     # add additional fields in here
 
     def __str__(self):

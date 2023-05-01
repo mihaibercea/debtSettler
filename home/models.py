@@ -19,23 +19,39 @@ from django.db import models
     
 # Create your models here.
 
+class Payment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='Unique ID for this particular sum across whole sums list')
+    from_member = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, default=None, related_name='from_member')
+    to_member = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, default=None, related_name='to_member')    
+    parent_session = models.ForeignKey('Session', on_delete = models.CASCADE, default=None)   
+    paid = models.BooleanField(default=False)
+    time_created = models.DateField(default=timezone.now)
+    value = models.FloatField(default=0)
+
+    class Meta:
+        ordering = ['-time_created']  
+
+    def __str__(self):
+        """String for representing the Model object."""
+        return "From " + self.from_user + "to " + self.to_user + "on session " + self.parent_session.name
+
 
 class Sum(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='Unique ID for this particular sum across whole sums list')
     member = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, default=None)
     current_sum = models.FloatField(default=0)
-    parent_session = models.ForeignKey('Session', on_delete = models.CASCADE, default=None)
-    partial_paid = models.FloatField(default=0)
+    parent_session = models.ForeignKey('Session', on_delete = models.CASCADE, default=None)    
     paid = models.BooleanField(default=False)
     time_created = models.DateField(default=timezone.now)
-    
+    payments = models.ManyToManyField('Payment', help_text='Create payments for this sum')
+
     class Meta:
         ordering = ['-time_created']  
 
     def __str__(self):
         """String for representing the Model object."""
-        return self.name
+        return self.parent_session.name
 
 
 
@@ -115,6 +131,10 @@ class Session(models.Model):
     parent_club = models.ForeignKey('Club', on_delete = models.CASCADE, default=None)
 
     sums = models.ManyToManyField('Sum')
+
+    payments = models.ManyToManyField('Payment')
+
+    bias = models.FloatField(default=0)
 
     STATUS_ = (
         ('o', 'open'),

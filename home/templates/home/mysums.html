@@ -2,12 +2,12 @@
 
 {% block content %}
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-  <h1>My debit. A list of all debts.</h1>
+  <h1>My ballance. A list of all debts.</h1>
   {% if user.sums %}
   <ul>
     {% for sum in user.sums.all %}
       <li>              
-        Club: <a href="{{ sum.parent_session.parent_club.get_absolute_url }}">{{ sum.parent_session.parent_club.name }} </a>. Session: <a href="{{ sum.parent_session.get_absolute_url }}">{{ sum.parent_session.name }} </a>. Sum: {{ sum.current_sum }}. {% if sum.paid %} Paid <button id="unpaySum" data-sumid="{{sum.id}}">Make "Not paid"</button> {% else %} Not paid <button id="paySum" data-sumid="{{sum.id}}">Pay</button> </p>  
+        Club: <a href="{{ sum.parent_session.parent_club.get_absolute_url }}">{{ sum.parent_session.parent_club.name }} </a>. Session: <a href="{{ sum.parent_session.get_absolute_url }}">{{ sum.parent_session.name }} </a>. Sum: {{ sum.current_sum|floatformat:2 }}. {% if sum.paid %} Paid <button id="unpaySum" data-sumid="{{sum.id}}">Make "Not paid"</button> {% else %} Not paid <button id="paySum" data-sumid="{{sum.id}}">Make "Paid"</button> </p>  
        </li> {% endif %}
     {% endfor %}
 
@@ -46,6 +46,17 @@
       });
     </script>
     
+    <hr>
+      <p>Payments:</p>
+      {% for payment in user.payments.all %}
+
+      <p>{{payment.from_member}} has to give {{payment.value}} to {{payment.to_member}}</p>
+
+      {% endfor %}
+    <hr>
+
+    <p>To receive: {{to_receive}}</p>
+    <p>To give: {{to_give}}</p>
     {% endif %}
   </ul>
   {% endblock %}
