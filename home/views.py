@@ -69,9 +69,9 @@ def mysums(request):
 
         if p.paid==False:
             if p.to_member == user:
-                to_give+=p.value
-            else:
                 to_receive+=p.value
+            else:
+                to_give+=p.value
 
     return render(request, 'home/mysums.html', context={'user': user, 'to_give':to_give, 'to_receive':to_receive})
 
@@ -264,7 +264,7 @@ def pay_sum(request, pk):
 
         sum.paid = True
         sum.save()
-        return render(request, 'home\session_detail.html')
+        return render(request, 'home/session_detail.html')
     
 @login_required
 def unpay_sum(request, pk):
@@ -281,7 +281,7 @@ def unpay_sum(request, pk):
 
         sum.paid = False
         sum.save()
-        return render(request, 'home\session_detail.html')
+        return render(request, 'home/session_detail.html')
     
 @login_required
 def pay_payment(request, pk):
@@ -298,7 +298,7 @@ def pay_payment(request, pk):
 
         payment.paid = True
         payment.save()
-        return render(request, 'home\session_detail.html')
+        return render(request, 'home/session_detail.html')
     
 @login_required
 def unpay_payment(request, pk):
@@ -315,7 +315,7 @@ def unpay_payment(request, pk):
 
         payment.paid = False
         payment.save()
-        return render(request, 'home\session_detail.html')
+        return render(request, 'home/session_detail.html')
 
 @login_required
 def make_payments(request, pk):
