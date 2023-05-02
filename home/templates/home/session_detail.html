@@ -90,7 +90,7 @@
               <br>
               <hr>
               <div>
-                <p><strong>Payments:<strong></p>  
+                <p><strong>Payments:</strong></p>  
                 {% if session.payments.count > 0 %} 
                     {% for payment in session.payments.all %}
                     <div class="payment-container">
@@ -186,7 +186,7 @@
       });
 
       $('.addmembers').click(function(){      
-        document.getElementById("members-to-invite").innerHTML = "<ul> {% for member in session.parent_club.members.all %} <li> <button id = \"add_member\", data-username = \"{{member.username}}\", data-session-id =\"{{session.id}}\", data-user-id = \"{{member.id}}\" > + {{member.username}} </button> </li> {% endfor %} </ul>";    
+        document.getElementById("members-to-invite").innerHTML = "<ul> {% for member in session.parent_club.members.all %} <li> <button class=\"btn-red btn-outline-info\" id=\"add_member\" data-username = \"{{member.username}}\" data-session-id =\"{{session.id}}\" data-user-id = \"{{member.id}}\"> + {{member.username}} </button> </li> {% endfor %} </ul>";    
       });
       </script>
       {% endif %}
@@ -195,7 +195,7 @@
     <hr>
     <h4>Details:</h4>
           
-    <p >
+    <p>
     Type: {% if session.type == 'z' %} Zero sum session. {% else %} Split sum session {% endif %}
     </p> 
     <p >

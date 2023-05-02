@@ -14,6 +14,8 @@ class CustomUser(AbstractUser):
 
     payments = models.ManyToManyField('home.payment', help_text='Payments involving this user')
 
+    join_requests = models.ManyToManyField('home.JoinRequest')
+
     # add additional fields in here
 
     def __str__(self):

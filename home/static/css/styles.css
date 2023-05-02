@@ -53,6 +53,21 @@
   transition: background-color 0.3s ease;
 }
 
+.btn-red {
+  background-color: #7a99ffd8;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 16px;
+  transition: background-color 0.3s ease;
+}
+
 .btn-remove {
   background-color: #ffffff;
   border: none;
@@ -198,9 +213,9 @@ li form input[type="submit"]:hover {
   margin-bottom: 5px;
 }
 
-.payment-description {
+/* .payment-description {
   font-weight: bold;
-}
+} */
 
 .payment-status {
   margin-right: 10px;
@@ -208,4 +223,8 @@ li form input[type="submit"]:hover {
 
 .payment-action {
   margin-left: 10px;
+}
+
+.green {
+  color: green;
 }
