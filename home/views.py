@@ -69,9 +69,9 @@ def mysums(request):
 
         if p.paid==False:
             if p.to_member == user:
-                to_give+=p.value
-            else:
                 to_receive+=p.value
+            else:
+                to_give+=p.value
 
     return render(request, 'home/mysums.html', context={'user': user, 'to_give':to_give, 'to_receive':to_receive})
 
