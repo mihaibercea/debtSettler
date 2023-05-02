@@ -21,6 +21,10 @@
                 Want to invite someone?  <a href="{{ club.get_absolute_url }}/invite"> Invite</a>
               </p>  
               <hr>
+              <p class="mb-3">
+              <a href="{{ club.get_absolute_url }}/join-requests">Join Requests</a>
+              </p>  
+              <hr>
               <h4 class="mb-3">Sessions</h4>        
               <ul class="list-group">
                 {% for session in sessions_list.all %}
@@ -50,8 +54,22 @@
               <p><a href="{{ club.get_absolute_url }}/delete">Do you want to delete the club?</a></p>
             {% else %}
               <p class="mb-3"> You are not part of the club. Would you like to join the club? </p>
-              <button class="btn btn-primary">Request to join (NOT FUNCTIONAL YET!)</button>
-              <p>Please ask any member for an invite</p>
+              <button class="btn btn-primary" id="requestJoin" data-club_id="{{club.id}}">Request to join</button>
+              <script type="text/javascript">              
+                $(document).on('click', '#requestJoin', function(){
+                    var club_id = $(this).attr('data-club_id');
+                    $.ajax({
+                        type: "GET",
+                        url: club_id + "/request-to-join",
+                        headers: {
+                          'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in the headers
+                        },     
+                        success: function(response) {
+                            location.reload();
+                        },
+                    });
+                });
+              </script> 
             {% endif %}           
           </div>
         </div>

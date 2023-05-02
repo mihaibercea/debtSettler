@@ -7,7 +7,7 @@ from django.contrib.auth import views
 from accounts.models import CustomUser
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from home.models import Club, Session, Invite, SessionMember, Sum, Payment
+from home.models import Club, Session, Invite, SessionMember, Sum, Payment, JoinRequest
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from accounts.models import CustomUser
 
@@ -60,6 +60,17 @@ def myinvites_list(request):
     return render(request, 'home/myinvites.html', context={'user': user})
 
 @login_required
+def club_join_requests(request, pk):    
+    u = request.user
+    club = get_object_or_404(Club, pk=pk)
+    if u not in club.members.all():     
+
+        return HttpResponseBadRequest('Invalid request')
+    
+    else: 
+        return render(request, 'home/club_join_requests.html', context={'club': club})
+
+@login_required
 def mysums(request):    
     user = request.user
     to_give = 0
@@ -101,6 +112,20 @@ def accept_invite(request, pk):
         return HttpResponse('Success')
     else:
         return HttpResponse('Not a GET method')
+
+@login_required
+def accept_join_request(request, pk):
+
+    if request.method == 'POST':
+        rpk = request.POST['req_id']
+        req = get_object_or_404(JoinRequest, pk=rpk)        
+        req.parent_club.members.add(req.from_user)
+        req.from_user.clubs.add(req.parent_club)
+        req.accepted = True
+        req.save()
+        return HttpResponse('Success')
+    else:
+        return HttpResponse('Not a POST method')
 
 class ClubDetailView(LoginRequiredMixin, generic.DetailView):
     model = Club
@@ -290,9 +315,9 @@ def pay_payment(request, pk):
     payment = get_object_or_404(Payment, pk=pk)
 
     #if u != sum.member:       
-    if u not in payment.parent_session.parent_club.members.all():    
+    if u not in [payment.to_member, payment.from_member]:    
 
-        return HttpResponseBadRequest('Invalid request')
+        return HttpResponseBadRequest('You cannot change payment status for someone else')
     
     else:
 
@@ -307,9 +332,9 @@ def unpay_payment(request, pk):
     payment= get_object_or_404(Payment, pk=pk)
 
     #if u != sum.member:       
-    if u not in payment.parent_session.parent_club.members.all():    
+    if u not in [payment.to_member, payment.from_member]:      
 
-        return HttpResponseBadRequest('Invalid request')
+        return HttpResponseBadRequest('You cannot change payment status for someone else')
     
     else:
 
@@ -603,6 +628,27 @@ def settle_session(request, pk):
 
         else:
             return HttpResponseBadRequest('Invalid request')
+
+@login_required
+def club_request_join(request, pk):
+    club = get_object_or_404(Club, pk=pk)
+    u = request.user
+
+    if u in club.members.all():
+        return HttpResponseBadRequest('User is already a member of the club')
+    
+    else:
+        join_req =  JoinRequest(
+            parent_club = club,    
+            from_user = u
+        )
+        join_req.save()
+        club.join_requests.add(join_req)
+        club.save()
+        u.join_requests.add(join_req)
+        u.save()
+
+        return render(request, 'myinvites.html')
 
 @login_required
 def club_invite(request, pk):

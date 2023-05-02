@@ -45,5 +45,13 @@
       </li>
     {% endfor %}
     {% endif %}
+    <h2>My club join requests:</h2>
+    {% if user.join_requests %}
+      {% for req in user.join_requests.all reversed %}
+      <li>              
+        <p>Club: {{ req.parent_club.name }} || {% if req.accepted %}Accepted{% else %}Not accepted yet</p>{% endif %}
+      </li>
+      {% endfor %}     
+    {% endif %}
   </ul>
   {% endblock %}

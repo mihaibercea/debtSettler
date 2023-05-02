@@ -77,6 +77,8 @@ class Club(models.Model):
     sessions = models.ManyToManyField('Session')
 
     sums = models.ManyToManyField('Sum')
+
+    join_requests = models.ManyToManyField('JoinRequest')
     
     class Meta:
         ordering = ['-time_created']    
@@ -111,6 +113,31 @@ class Invite(models.Model):
     def __str__(self):
         """String for representing the Model object."""
         text = 'From ' + str(self.from_user)+ 'to ' + str(self.to_user) + ', with ID: ' + str(self.id)
+        return text
+    
+    def get_absolute_url(self):
+        """Returns the URL to access a detail record for this club."""
+        return reverse('home:club-detail', args=[str(self.id)])   
+
+class JoinRequest(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='Unique ID for this particular invite')
+
+    parent_club = models.ForeignKey('Club', on_delete=models.CASCADE)
+    
+    from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='Join_request_for_user')
+
+    time_created = models.DateField(default=timezone.now)
+
+    accepted = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-time_created']
+
+
+    def __str__(self):
+        """String for representing the Model object."""
+        text = 'For club ' + str(self.parent_club)+ 'from ' + str(self.to_user) + ', with ID: ' + str(self.id)
         return text
     
     def get_absolute_url(self):
