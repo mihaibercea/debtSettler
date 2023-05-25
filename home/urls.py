@@ -1,9 +1,10 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 app_name = 'home'
 urlpatterns = [    
     path('', views.index, name='index'),
+    path('accounts/', include('allauth.urls')),
     path('home', views.index, name='index2'),
     path('myclubs/', views.myclublist_view, name='myclubs'),   
     path('myinvites/', views.myinvites_list, name='myinvites'),
