@@ -4,7 +4,7 @@
 
 {% if user.is_authenticated %}
   Hi {{ user.username }}!
-  <p><a href="{% url 'accounts:logout' %}">Log Out</a></p>
+  <p><a href="{% url 'account_logout' %}">Log Out</a></p>
  
   <h1>Debt Settler Home</h1>
   <p>Welcome to Debt Settler, a website developed by <em>Mishu</em>!</p>
@@ -17,8 +17,8 @@
 
 {% else %}
   <p>You are not logged in</p>
-  <a href="{% url 'accounts:login' %}">Log In</a> |
-  <a href="{% url 'accounts:signup' %}">Sign Up</a>
+  <a href="{% url 'account_login' %}?next={{ request.path }}">Log In</a> |
+  <a href="{% url 'account_signup' %}?next={{ request.path }}">Sign Up</a>
 {% endif %}
 
 {% endblock %}

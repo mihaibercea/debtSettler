@@ -21,12 +21,12 @@
 
             {% if user.is_authenticated %}
               <li class="username">User: {{ user.username }}</li>
-              <li><a href="{% url 'accounts:logout' %}?next={{ request.path }}">Logout</a></li>     
+              <li><a href="{% url 'account_logout' %}?next={{ request.path }}">Logout</a></li>     
               <li><a href="{% url 'home:myclubs' %}">My Clubs</a></li>                       
               <li><a href="{% url 'home:mysums' %}">My ballance</a></li>              
               <li class="invites">You have {{ user.invites_received.count }} <a href="{% url 'home:myinvites' %}">Invites</a></li>
             {% else %}
-              <li><a href="{% url 'accounts:login' %}?next={{ request.path }}">Login</a></li>
+              <li><a href="{% url 'account_login' %}?next={{ request.path }}">Login</a></li>              
             {% endif %}
           </ul>         
         {% endblock %}
