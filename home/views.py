@@ -354,7 +354,7 @@ def make_payments(request, pk):
         return HttpResponseBadRequest('Invalid request')
     
     else:
-        session_bias = 0
+        
         plus_sums = []
         minus_sums = []
 
@@ -363,10 +363,10 @@ def make_payments(request, pk):
             if sum.current_sum > 0:
                 plus_sums.append([sum, val])
             elif sum.current_sum < 0:
-                minus_sums.append([sum, val])
-            session_bias+=val
+                minus_sums.append([sum, val])     
         
-        session.bias = session_bias
+        sorted(plus_sums, key=lambda x: x[1])
+        sorted(minus_sums, key=lambda x: x[1])
 
         while len(plus_sums)>0 and len(minus_sums)>0:            
             if abs(abs(minus_sums[0][1]) - plus_sums[0][1]) <= 0.01:
@@ -550,9 +550,25 @@ def session_add_user(request, pk):
                 session.save()
 
                 #return render(request, 'home/session_detail.html', context={'session': session})
-                return redirect('home:session-detail', pk=session.pk)
+                # messages.success(request, "Member added." )
+                # return redirect('home:session-detail', pk=session.pk)
+                response_data = {
+                'message': 'User added successfully',
+                 }
+
+                return JsonResponse(response_data)
+        # Any other data you want to send back to the client   
+    
             else:
-                return redirect('home:session-detail', pk=session.pk)
+                response_data = {
+                'message': 'User already in session',
+                 }
+
+                return JsonResponse(response_data)
+                # messages.success(request, "Member already in session." )
+                # return redirect('home:index')
+                #return redirect('home:session-detail', pk=session.pk)
+            
         else:
             return HttpResponseBadRequest('Invalid request')
 
@@ -566,7 +582,6 @@ def settle_session(request, pk):
         return HttpResponseBadRequest('Invalid request')
     
     else:
-
         
         if session.status == "o":
 
@@ -598,7 +613,15 @@ def settle_session(request, pk):
 
                 return redirect('home:session-detail', pk=session.id)            
                 
-            elif session.type == 'z':  
+            elif session.type == 'z':
+
+                session_bias = 0
+
+                for sum in session.sums.all():
+                    val = sum.current_sum
+                    session_bias+=val
+                
+                session.bias = session_bias
 
                 for member in session.members.all():
                     member.settled_sum = member.debit                        

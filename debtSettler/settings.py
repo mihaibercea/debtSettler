@@ -68,7 +68,7 @@ ROOT_URLCONF = 'debtSettler.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'), os.path.join(BASE_DIR, 'templates', 'allauth')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -158,6 +158,20 @@ SOCIALACCOUNT_QUERY_EMAIL = True
 ACCOUNT_LOGOUT_ON_GET= True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_REQUIRED = True
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.mailgun.org'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'postmaster@ymihaibercea.com'  # Your Gmail address
+EMAIL_HOST_PASSWORD = 'd50f53a9f26d781d9d9c86eb4f09075b-af778b4b-bfaa6504'  # Your Gmail password or an app password if 2-Step Verification is enabled
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'mihai.bercea@gmail.com'  # The email address to use as the sender
+
+
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {

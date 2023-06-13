@@ -178,12 +178,27 @@
               csrfmiddlewaretoken: '{{ csrf_token }}', // Add this line to include the CSRF token in the headers,
             },              
             success: function(response) {
-              // Reload the page
-              location.reload();
+              if (response.message === "User added successfully") {
+                showMessage("success", response.message);
+                location.reload();
+              } else if (response.message === "User already in session") {
+                showMessage("error", response.message);
+              } else {
+                showMessage("error", "An unknown error occurred.");
+              }
+            },
+            error: function (xhr, errmsg, err) {
+              showMessage("error", "An error occurred. Please try again.");
             },
         })               
       
       });
+
+      function showMessage(type, message) {
+      // Display the message using your preferred method (e.g., showing an alert, updating a message container, etc.)
+      // For example, you can use the alert() function to display an alert with the message.
+      alert(message);
+      }
 
       $('.addmembers').click(function(){      
         document.getElementById("members-to-invite").innerHTML = "<ul> {% for member in session.parent_club.members.all %} <li> <button class=\"btn-red btn-outline-info\" id=\"add_member\" data-username = \"{{member.username}}\" data-session-id =\"{{session.id}}\" data-user-id = \"{{member.id}}\"> + {{member.username}} </button> </li> {% endfor %} </ul>";    
