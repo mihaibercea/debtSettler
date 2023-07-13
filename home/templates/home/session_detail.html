@@ -68,6 +68,7 @@
                   }) 
                 });
               </script>
+  
               {% else %}
               <div class="sums-container">
                 <ul class="sums-list">
@@ -85,7 +86,7 @@
                   </li>
                   {% endfor %}
                 </ul>
-              </div>
+              </div> 
               <p> <span class="member-name"> Bias: {{session.bias|floatformat:2}} </span> (Negative -> more money needs to be given than received. Positive -> more money needs to be received than given )</p>
               <br>
               <hr>

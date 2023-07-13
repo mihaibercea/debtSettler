@@ -20,8 +20,19 @@ from .forms import InviteForm, ZeroSumForm, SessionForm, PluslDebit, DebitForm
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormMixin
 import json
+from django.core.mail import send_mail
 
 #import pdb; pdb.set_trace()
+
+def send_email(request):
+    send_mail(
+        'Subject',
+        'Body',
+        'mihai.bercea@gmail.com',
+        ['mihai.bercea@gmail.com'],
+        fail_silently=False,
+    )
+    return render(request, 'email_sent.html')
 
 def index(request):
 
@@ -175,23 +186,31 @@ class ClubDetailView(LoginRequiredMixin, generic.DetailView):
 
 def test_view(request):
 
-    text = 'No text yet.'
-    session = Session.objects.get(id="5702d03c-6aa4-4eaa-b70c-f1f3bbf57958")
+    # text = 'No text yet.'
+    # session = Session.objects.get(id="5702d03c-6aa4-4eaa-b70c-f1f3bbf57958")
 
-    # if request.method == 'POST':
-    #     form = TestForm(request.POST)
+    # # if request.method == 'POST':
+    # #     form = TestForm(request.POST)
         
-    #     if form.is_valid():
+    # #     if form.is_valid():
 
-    #         text = form.cleaned_data['text']          
+    # #         text = form.cleaned_data['text']          
                 
-    #         return render(request, 'test.html', context={'form':form, 'text': text, 'session':session})
-    #         #return HttpResponseRedirect(reverse('home:index'))
-    # else:
+    # #         return render(request, 'test.html', context={'form':form, 'text': text, 'session':session})
+    # #         #return HttpResponseRedirect(reverse('home:index'))
+    # # else:
         
-    form = ZeroSumForm()
+    # form = ZeroSumForm()
 
-    return render(request, 'test.html', context={'form':form, 'text': text, 'session':session})
+    # return render(request, 'test.html', context={'form':form, 'text': text, 'session':session})
+        send_mail(
+        'Subject',
+        'Body',
+        'mihai.bercea@gmail.com',
+        ['mihai.bercea@gmail.com'],
+        fail_silently=False,
+        )
+        return render(request, 'test.html')
 
 @login_required
 def add_member_debit(request, spk, mpk):
@@ -270,6 +289,7 @@ def plus_debit(request, spk, mpk):
                 member.save()
 
                 #return render(request, 'session_detail.html', context={'form':form, 'session':session})
+
                 return redirect('home:session-detail', pk=session.id)
         else:        
             return HttpResponse('Not a POST method')
@@ -613,15 +633,7 @@ def settle_session(request, pk):
 
                 return redirect('home:session-detail', pk=session.id)            
                 
-            elif session.type == 'z':
-
-                session_bias = 0
-
-                for sum in session.sums.all():
-                    val = sum.current_sum
-                    session_bias+=val
-                
-                session.bias = session_bias
+            elif session.type == 'z':           
 
                 for member in session.members.all():
                     member.settled_sum = member.debit                        
@@ -633,6 +645,14 @@ def settle_session(request, pk):
                             session.sums.add(s)                 
                     
                     member.save()
+
+                session_bias = 0
+
+                for sum in session.sums.all():
+                    val = sum.current_sum
+                    session_bias+=val
+                
+                session.bias = session_bias   
 
                 session.status='c'
                 session.save()

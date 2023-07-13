@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+from .sendgrid_backend import SendgridBackend
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -163,15 +164,24 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.mailgun.org'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'postmaster@ymihaibercea.com'  # Your Gmail address
-EMAIL_HOST_PASSWORD = 'd50f53a9f26d781d9d9c86eb4f09075b-af778b4b-bfaa6504'  # Your Gmail password or an app password if 2-Step Verification is enabled
-EMAIL_USE_TLS = True
+# # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# # # settings.py
+# EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+# SENDGRID_API_KEY = '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'
+# # EMAIL_HOST = 'smtp.mailgun.org'
+# # EMAIL_PORT = 587
+# # EMAIL_HOST_USER = 'postmaster@ymihaibercea.com'  # Your Gmail address
+# # EMAIL_HOST_PASSWORD = 'd50f53a9f26d781d9d9c86eb4f09075b-af778b4b-bfaa6504'  # Your Gmail password or an app password if 2-Step Verification is enabled
+# # EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'mihai.bercea@gmail.com'  # The email address to use as the sender
 
+SENDGRID_API_KEY = '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'
 
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'apikey' # this is exactly the value 'apikey'
+EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
