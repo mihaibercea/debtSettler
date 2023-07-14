@@ -173,7 +173,7 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 # # EMAIL_HOST_USER = 'postmaster@ymihaibercea.com'  # Your Gmail address
 # # EMAIL_HOST_PASSWORD = 'd50f53a9f26d781d9d9c86eb4f09075b-af778b4b-bfaa6504'  # Your Gmail password or an app password if 2-Step Verification is enabled
 # # EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'mihai.bercea@gmail.com'  # The email address to use as the sender
+DEFAULT_FROM_EMAIL = 'mishusgames@gmail.com'  # The email address to use as the sender
 
 SENDGRID_API_KEY = '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'
 
