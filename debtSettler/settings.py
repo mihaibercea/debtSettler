@@ -93,7 +93,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'debt-settler-database',
         'USER': 'hfojhxnhrz',
-        'PASSWORD': 'GIgisapunaru!23',
+        'PASSWORD': 'Gigisapunaru!23',
         'HOST': 'debt-settler-server.postgres.database.azure.com',
         'PORT': '5432',
         'OPTIONS':{
