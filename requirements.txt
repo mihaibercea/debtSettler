@@ -2,3 +2,4 @@ django
 whitenoise
 psycopg2-binary
 django-sendgrid
+sendgrid
