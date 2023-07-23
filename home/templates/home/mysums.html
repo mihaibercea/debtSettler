@@ -80,6 +80,19 @@
        </li> 
     {% endfor %}
   </ul>
+  {% if user.livesessions %}
+    <p><strong>Live sessions:</strong></p>
+    {% for livesession in user.livesessions.all %}
+
+    <div class="livesession-container">
+      <p><span class="livesession-description">
+      <strong>Played on {{ livesession.date }}</strong> || <strong>Location: {{ livesession.casino }}</strong> || <strong>Stakes: {{ livesession.stakes }}</strong> || <strong>Result: {{ livesession.result_sum }}</strong>
+      </span>
+    </div>
+    {% endfor %}
+
+  {% endif %}
+    <a href="{% url 'home:create-live-session' %}">New Live Session</a>
   {% endblock %}
 
 

@@ -1,0 +1,13 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+
+<h1>New Live Session</h1>
+
+<form action="{% url 'home:create-live-session' %}" method="POST">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <input type="submit" value="Create"/>
+</form>
+
+{% endblock %}

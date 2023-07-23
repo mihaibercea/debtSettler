@@ -7,7 +7,7 @@ from django.contrib.auth import views
 from accounts.models import CustomUser
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from home.models import Club, Session, Invite, SessionMember, Sum, Payment, JoinRequest
+from home.models import Club, Session, Invite, SessionMember, Sum, Payment, JoinRequest, LiveSession
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from accounts.models import CustomUser
 
@@ -16,7 +16,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from .forms import InviteForm, ZeroSumForm, SessionForm, PluslDebit, DebitForm
+from .forms import InviteForm, ZeroSumForm, SessionForm, PluslDebit, DebitForm, LiveSessionForm
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormMixin
 import json
@@ -96,6 +96,50 @@ def mysums(request):
                 to_give+=p.value
 
     return render(request, 'home/mysums.html', context={'user': user, 'to_give':to_give, 'to_receive':to_receive})
+
+@login_required
+def create_live_session(request):
+
+    user = request.user
+
+    if request.method == 'POST':
+        form = LiveSessionForm(request.POST)
+        
+        if form.is_valid():
+        
+            casino = form.cleaned_data['casino']
+            stakes =  form.cleaned_data['stakes'] 
+            game =  form.cleaned_data['game'] 
+            
+            valid_session = LiveSession(casino=casino,  stakes=stakes, game=game, date = timezone.now())            
+
+            valid_session.save()
+            user.livesessions.add(valid_session)
+            user.save()
+            session_id = valid_session.id   
+
+            return redirect('home:live-session-detail', pk=session_id)
+
+            #return render(request, 'home/club_detail.html', context={'club': club, 'sesisons_list':sesisons_list, 'is_member':is_member})
+                
+    else:
+        form = LiveSessionForm()
+        #form.name.initial=str(timezone.now())
+    return render(request, 'home/livesession_create.html', {'form':form})
+
+@login_required
+def livesession_detail(request, pk):
+    
+        user = request.user
+        live_session = get_object_or_404(LiveSession, pk=pk)
+
+        stakes = live_session.stakes
+        casino = live_session.casino
+        game = live_session.game
+        current_stack = live_session.result_sum
+
+
+        return render(request, 'home/livesession_detail.html', context={'stakes': stakes, 'casino':casino, 'game':game, 'current_stack':current_stack, 'id':live_session.id})
 
 
 @login_required

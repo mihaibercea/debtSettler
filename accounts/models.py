@@ -16,6 +16,8 @@ class CustomUser(AbstractUser):
 
     join_requests = models.ManyToManyField('home.JoinRequest')
 
+    livesessions = models.ManyToManyField('home.LiveSession', help_text='livesessions')
+
     # add additional fields in here
 
     def __str__(self):
