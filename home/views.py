@@ -16,7 +16,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from .forms import InviteForm, ZeroSumForm, SessionForm, PluslDebit, DebitForm, LiveSessionForm
+from .forms import InviteForm, ZeroSumForm, SessionForm, PluslDebit, DebitForm, LiveSessionForm, PluslBuyIn, PlusStack
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormMixin
 import json
@@ -136,10 +136,14 @@ def livesession_detail(request, pk):
         stakes = live_session.stakes
         casino = live_session.casino
         game = live_session.game
-        current_stack = live_session.result_sum
+        stack = live_session.stack
+        buy_in = live_session.buy_in
+        result = live_session.stack - live_session.buy_in
 
+        plus_buy_in_form = PluslBuyIn()
+        plus_stack_form = PlusStack()
 
-        return render(request, 'home/livesession_detail.html', context={'stakes': stakes, 'casino':casino, 'game':game, 'current_stack':current_stack, 'id':live_session.id})
+        return render(request, 'home/livesession_detail.html', context={'stakes': stakes, 'casino':casino, 'game':game, 'stack':stack, 'buy_in':buy_in,  'id':live_session.id, 'result':result, 'plus_buy_in':plus_buy_in_form, 'plus_stack':plus_stack_form})
 
 
 @login_required
@@ -337,6 +341,44 @@ def plus_debit(request, spk, mpk):
                 return redirect('home:session-detail', pk=session.id)
         else:        
             return HttpResponse('Not a POST method')
+
+@login_required
+def plus_buy_in(request, lspk):
+    u = request.user 
+    live_session = get_object_or_404(LiveSession, pk=lspk) 
+
+    if request.method == 'POST':
+        form = PluslBuyIn(request.POST)
+        if form.is_valid():                 
+            live_session.buy_in = live_session.buy_in + form.cleaned_data['plus_buy_in']
+            live_session.save()
+
+            #return render(request, 'session_detail.html', context={'form':form, 'session':session})
+
+            return redirect('home:live-session-detail', pk=live_session.id)
+    else:        
+        return HttpResponse('Not a POST method')
+    
+    return HttpResponse('Something went wrong')
+
+@login_required
+def plus_stack(request, lspk):
+    u = request.user 
+    live_session = get_object_or_404(LiveSession, pk=lspk) 
+
+    if request.method == 'POST':
+        form = PlusStack(request.POST)
+        if form.is_valid():                 
+            live_session.stack = live_session.stack + form.cleaned_data['plus_stack']
+            live_session.save()
+
+            #return render(request, 'session_detail.html', context={'form':form, 'session':session})
+
+            return redirect('home:live-session-detail', pk=live_session.id)     
+    else:        
+        return HttpResponse('Not a POST method')
+    
+    return HttpResponse('Something went wrong')
 
 @login_required
 def pay_sum(request, pk):

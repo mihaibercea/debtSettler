@@ -222,7 +222,7 @@ class StackDelta(models.Model):
 class LiveSession(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, help_text='Unique ID for this particular session across whole sessions list')
-    result_sum = models.FloatField(default=0)
+    stack = models.FloatField(default=0)
     date = models.DateField(default=timezone.now)
     casino = models.CharField(max_length=200, default = 'Casino name')
     buy_in = models.FloatField(default=0)
@@ -283,3 +283,7 @@ class LiveSession(models.Model):
         default='o',
         help_text='Status of the session',
     )
+
+    def get_absolute_url(self):
+        """Returns the URL to access a particular instance of MyModelName."""
+        return reverse('home:live-session-detail', args=[str(self.id)])

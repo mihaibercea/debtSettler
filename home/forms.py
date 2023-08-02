@@ -65,3 +65,19 @@ class DebitForm(forms.Form):
 class PluslDebit(forms.Form):
 
     plus_debit = forms.FloatField(label = 'Add more Debit')
+
+class PluslBuyIn(forms.Form):
+
+    plus_buy_in = forms.FloatField(label = 'Add to the buy-in')
+    def clean_plus_buy_in(self):
+        plus_buy_in = self.cleaned_data['plus_buy_in']
+        
+        return plus_buy_in
+
+class PlusStack(forms.Form):
+
+    plus_stack = forms.FloatField(label = 'Add to the stack')
+    def clean_plus_stack(self):
+        plus_stack = self.cleaned_data['plus_stack']
+        
+        return plus_stack

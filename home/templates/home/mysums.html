@@ -86,7 +86,7 @@
 
     <div class="livesession-container">
       <p><span class="livesession-description">
-      <strong>Played on {{ livesession.date }}</strong> || <strong>Location: {{ livesession.casino }}</strong> || <strong>Stakes: {{ livesession.stakes }}</strong> || <strong>Result: {{ livesession.result_sum }}</strong>
+      <a href="{{ livesession.get_absolute_url }}"><strong>Played on {{ livesession.date }}</strong> || <strong>Location: {{ livesession.casino }}</strong> || <strong>Stakes: {{ livesession.stakes }}</strong> || <strong>Result: {{ livesession.result }}</strong>
       </span>
     </div>
     {% endfor %}
