@@ -95,7 +95,20 @@ def mysums(request):
             else:
                 to_give+=p.value
 
-    return render(request, 'home/mysums.html', context={'user': user, 'to_give':to_give, 'to_receive':to_receive})
+    ls = user.livesessions.all()
+
+    ls_data = []
+    ls_labels = []
+
+    for s in ls:
+        if ls_data:
+            current = ls_data[-1]
+        else:
+            current=0
+        ls_data.append(current+(s.stack-s.buy_in))
+        ls_labels.append(str(s.date)) 
+
+    return render(request, 'home/mysums.html', context={'user': user, 'to_give':to_give, 'to_receive':to_receive, 'ls':ls, 'ls_data':ls_data, 'ls_labels':ls_labels})
 
 @login_required
 def create_live_session(request):

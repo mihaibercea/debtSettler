@@ -67,6 +67,121 @@
     });
 
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      // Custom plugin to change area fill color based on Y values      
+    
+        Chart.plugins.register({
+            beforeDatasetsDraw: function (chart) {
+                var ctx = chart.ctx;
+                var dataset = chart.data.datasets[0];
+                var meta = chart.getDatasetMeta(0);
+                var xAxis = chart.scales['x'];
+                var yAxis = chart.scales['y'];
+                var yZero = yAxis.getPixelForValue(0);
+
+                ctx.save();
+                ctx.beginPath();
+
+                // Start filling below the zero line (red)
+                ctx.moveTo(xAxis.left, yZero);
+                for (var i = 0; i < meta.data.length; i++) {
+                    var model = meta.data[i]._model;
+                    var x = model.x;
+                    var y = model.y;
+
+                    // Draw line to each data point
+                    ctx.lineTo(x, y);
+
+                    // For the first and last points, close the path to fill the area under the curve
+                    if (i === 0 || i === meta.data.length - 1) {
+                        ctx.lineTo(x, yZero);
+                        ctx.closePath();
+                    }
+                }
+
+                // Fill below the zero line (red)
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+                ctx.fill();
+
+                // Start filling above the zero line (green)
+                ctx.beginPath();
+                ctx.moveTo(xAxis.left, yZero);
+                for (var i = 0; i < meta.data.length; i++) {
+                    var model = meta.data[i]._model;
+                    var x = model.x;
+                    var y = model.y;
+
+                    // Draw line to each data point
+                    ctx.lineTo(x, y);
+
+                    // For the first and last points, close the path to fill the area under the curve
+                    if (i === 0 || i === meta.data.length - 1) {
+                        ctx.lineTo(x, yZero);
+                        ctx.closePath();
+                    }
+                }
+
+                // Fill above the zero line (green)
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.2)';
+                ctx.fill();
+
+                ctx.restore();
+            }
+        });
+
+    </script>   
+    <script>
+      // jquery function
+        $(document).ready(function(){
+
+                var ls_data = {{ ls_data|safe }};
+                var ls_labels = {{ ls_labels|safe }};               
+
+                // var backgroundColors = ls_data.map(function(value) {
+                //     return value >= 0 ? 'rgba(0, 128, 0, 0.2)' : 'rgba(255, 0, 0, 0.2)';
+                // });
+                // console.log(ls_data); // Add this line to check the ls_data in the browser's console
+
+                var ctx = document.getElementById('myChart').getContext('2d');
+                var myChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ls_labels, // Set the labels for the chart
+                        datasets: [{
+                            label: 'Live Sessions Data',
+                            data: ls_data,
+                            backgroundColor: 'rgba(0, 0, 0, 1)',
+                            borderColor: 'rgba(0, 0, 0, 1)',
+                            tension:0,
+                            borderWidth: 1,
+                            fill: 'origin'
+
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                display: true, // Show the X-axis
+                            },
+                            y: {
+                                display: true, // Show the Y-axis
+                                beginAtZero: true, // Start the Y-axis at 0
+                                grid: {
+                                    display: false // Hide grid lines
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        }
+                    }
+                });
+              });          
+      </script>
 
     <p><strong>To receive: {{to_receive|floatformat:2}}</strong></p>
     <p><strong>To give: {{to_give|floatformat:2}}</strong></p>
@@ -86,13 +201,16 @@
 
     <div class="livesession-container">
       <p><span class="livesession-description">
-      <a href="{{ livesession.get_absolute_url }}"><strong>Played on {{ livesession.date }}</strong> || <strong>Location: {{ livesession.casino }}</strong> || <strong>Stakes: {{ livesession.stakes }}</strong> || <strong>Result: {{ livesession.result }}</strong>
+      <a href="{{ livesession.get_absolute_url }}"><strong>Played on {{ livesession.date }}</strong> || <strong>Location: {{ livesession.casino }}</strong> || <strong>Stakes: {{ livesession.stakes }}</strong> || <strong>Stack : {{ livesession.stack }}</strong>
       </span>
     </div>
     {% endfor %}
 
   {% endif %}
     <a href="{% url 'home:create-live-session' %}">New Live Session</a>
+    <br>
+    <p>Live Sessions stats:</p>
+    <canvas id="myChart" width="400" height="100"></canvas>  
   {% endblock %}
 
 

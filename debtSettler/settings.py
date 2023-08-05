@@ -152,7 +152,7 @@ AUTHENTICATION_BACKENDS = [
 
 
 SITE_ID = 3
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/home'
 
 # Additional configuration settings
 SOCIALACCOUNT_QUERY_EMAIL = True
