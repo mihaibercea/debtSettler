@@ -105,10 +105,7 @@ def mysums(request, interval):
                 to_receive+=p.value
             else:
                 to_give+=p.value
-    intervals = ['alltime', 'year', 'month']
-    if interval not in intervals:
-        return HttpResponse('Invalid request')
-    
+        
     if interval=='alltime':
         ls = user.livesessions.all()
     elif interval == 'year':
