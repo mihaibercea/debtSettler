@@ -86,6 +86,8 @@ def club_join_requests(request, pk):
 @login_required
 def mysums(request, interval):
    
+    if not interval:
+        interval = 'alltime'
 
     user = request.user
     to_give = 0
