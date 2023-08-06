@@ -287,3 +287,6 @@ class LiveSession(models.Model):
     def get_absolute_url(self):
         """Returns the URL to access a particular instance of MyModelName."""
         return reverse('home:live-session-detail', args=[str(self.id)])
+    
+    class Meta:
+        ordering = ['-date'] 

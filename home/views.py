@@ -21,6 +21,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormMixin
 import json
 from django.core.mail import send_mail
+from datetime import datetime, timedelta
+from django.utils import timezone
 
 #import pdb; pdb.set_trace()
 
@@ -82,10 +84,19 @@ def club_join_requests(request, pk):
         return render(request, 'home/club_join_requests.html', context={'club': club})
 
 @login_required
-def mysums(request):    
+def mysums(request, interval):
+   
+
     user = request.user
     to_give = 0
     to_receive = 0
+
+    current_date = timezone.now()
+
+    # Calculate the start date for the last 30 days
+    last_30_days_start = current_date - timedelta(days=30)
+
+    current_year_start = current_date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)  
 
     for p in user.payments.all():
 
@@ -94,8 +105,16 @@ def mysums(request):
                 to_receive+=p.value
             else:
                 to_give+=p.value
-
-    ls = user.livesessions.all()
+    intervals = ['alltime', 'year', 'month']
+    if interval not in intervals:
+        return HttpResponse('Invalid request')
+    
+    if interval=='alltime':
+        ls = user.livesessions.all()
+    elif interval == 'year':
+        ls = user.livesessions.filter(date__gte=current_year_start) 
+    elif interval == 'month':
+        ls = user.livesessions.filter(date__range=[last_30_days_start, current_date])
 
     ls_data = []
     ls_labels = []
@@ -108,7 +127,7 @@ def mysums(request):
         ls_data.append(current+(s.stack-s.buy_in))
         ls_labels.append(str(s.date)) 
 
-    return render(request, 'home/mysums.html', context={'user': user, 'to_give':to_give, 'to_receive':to_receive, 'ls':ls, 'ls_data':ls_data, 'ls_labels':ls_labels})
+    return render(request, 'home/mysums.html', context={'user': user, 'to_give':to_give, 'to_receive':to_receive, 'ls':ls, 'ls_data':ls_data, 'ls_labels':ls_labels, 'interval':interval})
 
 @login_required
 def create_live_session(request):
