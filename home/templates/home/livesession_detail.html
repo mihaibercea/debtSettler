@@ -5,19 +5,21 @@
 <p> Live Session: {{id}}</p>
 <p> Game: {{game}}</p>
 <p> Stakes: {{stakes}}</p>
-<p> Current Stack: {{stack}}</p>
+<p> Current Stack: {{stack}}(amount of money you have at the end)</p>
 <form action="{% url 'home:plus-stack' id %}" method="POST">
     {% csrf_token %}                  
     {{ plus_stack}}                    
     <input type="submit" value="Submit">
   </form>
-<p> Buy-In: {{buy_in}}</p>
+<p> Buy-In: {{buy_in}} (amount of money you buy in for)</p>
     <form action="{% url 'home:plus-buy-in' id %}" method="POST">
     {% csrf_token %}                  
     {{ plus_buy_in }}                    
     <input type="submit" value="Submit">
   </form>
 
+  <hr>
+  <br>
   <p> Result: {{result}}</p>
 
 {% endblock %}
