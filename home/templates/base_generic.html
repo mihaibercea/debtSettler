@@ -10,6 +10,9 @@
   <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" integrity="sha256-Uv9BNBucvCPipKQ2NS9wYpJmi8DTOEfTA/nH2aoJALw=" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css" integrity="sha256-aa0xaJgmK/X74WM224KMQeNQC2xYKwlAt08oZqjeF0E=" crossorigin="anonymous" />
 <body>
   {% include 'home/includes/messages.html' %}
   {% if messages %}
@@ -31,7 +34,7 @@
               <li class="username">User: {{ user.username }}</li>
               <li><a href="{% url 'account_logout' %}?next={{ request.path }}">Logout</a></li>     
               <li><a href="{% url 'home:myclubs' %}">My Clubs</a></li>                       
-              <li><a href="{% url 'home:mysums' %}">My ballance</a></li>              
+              <li><a href="/mydebit/alltime">My balance</a></li>              
               <li class="invites">You have {{ user.invites_received.count }} <a href="{% url 'home:myinvites' %}">Invites</a></li>
             {% else %}
               <li><a href="{% url 'account_login' %}?next={{ request.path }}">Login</a></li>              

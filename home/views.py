@@ -7,7 +7,7 @@ from django.contrib.auth import views
 from accounts.models import CustomUser
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from home.models import Club, Session, Invite, SessionMember, Sum, Payment, JoinRequest
+from home.models import Club, Session, Invite, SessionMember, Sum, Payment, JoinRequest, LiveSession
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from accounts.models import CustomUser
 
@@ -16,11 +16,13 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from .forms import InviteForm, ZeroSumForm, SessionForm, PluslDebit, DebitForm
+from .forms import InviteForm, ZeroSumForm, SessionForm, PluslDebit, DebitForm, LiveSessionForm, PluslBuyIn, PlusStack
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormMixin
 import json
 from django.core.mail import send_mail
+from datetime import datetime, timedelta
+from django.utils import timezone
 
 #import pdb; pdb.set_trace()
 
@@ -82,10 +84,21 @@ def club_join_requests(request, pk):
         return render(request, 'home/club_join_requests.html', context={'club': club})
 
 @login_required
-def mysums(request):    
+def mysums(request, interval):
+   
+    if not interval:
+        interval = 'alltime'
+
     user = request.user
     to_give = 0
     to_receive = 0
+
+    current_date = timezone.now()
+
+    # Calculate the start date for the last 30 days
+    last_30_days_start = current_date - timedelta(days=30)
+
+    current_year_start = current_date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)  
 
     for p in user.payments.all():
 
@@ -94,8 +107,74 @@ def mysums(request):
                 to_receive+=p.value
             else:
                 to_give+=p.value
+        
+    if interval=='alltime':
+        ls = user.livesessions.all()
+    elif interval == 'year':
+        ls = user.livesessions.filter(date__gte=current_year_start) 
+    elif interval == 'month':
+        ls = user.livesessions.filter(date__range=[last_30_days_start, current_date])
 
-    return render(request, 'home/mysums.html', context={'user': user, 'to_give':to_give, 'to_receive':to_receive})
+    ls_data = []
+    ls_labels = []
+
+    for s in ls:
+        if ls_data:
+            current = ls_data[-1]
+        else:
+            current=0
+        ls_data.append(current+(s.stack-s.buy_in))
+        ls_labels.append(str(s.date)) 
+
+    return render(request, 'home/mysums.html', context={'user': user, 'to_give':to_give, 'to_receive':to_receive, 'ls':ls, 'ls_data':ls_data, 'ls_labels':ls_labels, 'interval':interval})
+
+@login_required
+def create_live_session(request):
+
+    user = request.user
+
+    if request.method == 'POST':
+        form = LiveSessionForm(request.POST)
+        
+        if form.is_valid():
+        
+            casino = form.cleaned_data['casino']
+            stakes =  form.cleaned_data['stakes'] 
+            game =  form.cleaned_data['game'] 
+            
+            valid_session = LiveSession(casino=casino,  stakes=stakes, game=game, date = timezone.now())            
+
+            valid_session.save()
+            user.livesessions.add(valid_session)
+            user.save()
+            session_id = valid_session.id   
+
+            return redirect('home:live-session-detail', pk=session_id)
+
+            #return render(request, 'home/club_detail.html', context={'club': club, 'sesisons_list':sesisons_list, 'is_member':is_member})
+                
+    else:
+        form = LiveSessionForm()
+        #form.name.initial=str(timezone.now())
+    return render(request, 'home/livesession_create.html', {'form':form})
+
+@login_required
+def livesession_detail(request, pk):
+    
+        user = request.user
+        live_session = get_object_or_404(LiveSession, pk=pk)
+
+        stakes = live_session.stakes
+        casino = live_session.casino
+        game = live_session.game
+        stack = live_session.stack
+        buy_in = live_session.buy_in
+        result = live_session.stack - live_session.buy_in
+
+        plus_buy_in_form = PluslBuyIn()
+        plus_stack_form = PlusStack()
+
+        return render(request, 'home/livesession_detail.html', context={'stakes': stakes, 'casino':casino, 'game':game, 'stack':stack, 'buy_in':buy_in,  'id':live_session.id, 'result':result, 'plus_buy_in':plus_buy_in_form, 'plus_stack':plus_stack_form})
 
 
 @login_required
@@ -293,6 +372,44 @@ def plus_debit(request, spk, mpk):
                 return redirect('home:session-detail', pk=session.id)
         else:        
             return HttpResponse('Not a POST method')
+
+@login_required
+def plus_buy_in(request, lspk):
+    u = request.user 
+    live_session = get_object_or_404(LiveSession, pk=lspk) 
+
+    if request.method == 'POST':
+        form = PluslBuyIn(request.POST)
+        if form.is_valid():                 
+            live_session.buy_in = live_session.buy_in + form.cleaned_data['plus_buy_in']
+            live_session.save()
+
+            #return render(request, 'session_detail.html', context={'form':form, 'session':session})
+
+            return redirect('home:live-session-detail', pk=live_session.id)
+    else:        
+        return HttpResponse('Not a POST method')
+    
+    return HttpResponse('Something went wrong')
+
+@login_required
+def plus_stack(request, lspk):
+    u = request.user 
+    live_session = get_object_or_404(LiveSession, pk=lspk) 
+
+    if request.method == 'POST':
+        form = PlusStack(request.POST)
+        if form.is_valid():                 
+            live_session.stack = live_session.stack + form.cleaned_data['plus_stack']
+            live_session.save()
+
+            #return render(request, 'session_detail.html', context={'form':form, 'session':session})
+
+            return redirect('home:live-session-detail', pk=live_session.id)     
+    else:        
+        return HttpResponse('Not a POST method')
+    
+    return HttpResponse('Something went wrong')
 
 @login_required
 def pay_sum(request, pk):

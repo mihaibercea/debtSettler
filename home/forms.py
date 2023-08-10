@@ -25,6 +25,38 @@ class SessionForm(forms.Form):
     name = forms.CharField(initial=str(timezone.now().date()))    
     type = forms.ChoiceField(label='Type', choices = type_choices )
 
+class LiveSessionForm(forms.Form):
+    
+    stakes_choices = (
+        ('1/2', '1/2'),
+        ('1/3', '1/3'),
+        ('2/5', '2/5'),
+        ('5/10', '5/10'),
+        ('5/5', '5/5'),
+        ('5/10', '5/10'),
+        ('10/10', '10/10'),
+        ('10/20', '10/20'),
+        ('10/25', '10/25'),
+        ('25/50', '25/50'),
+        ('50/100', '50/100'),
+        ('100/100', '100/100'),
+        ('Other', 'Other'),
+    )
+
+    game_choices = (        
+        ('NLHE', 'NLHE'),
+        ('PLO4', 'PLO4'),
+        ('PLO5', 'PLO5'),
+        ('Pinapple', ' Pineapple'),
+        ('Stud', 'Stud'),
+        ('HORSE', 'HORSE'),
+        ('Other', 'Other')    
+    )
+
+    casino = forms.CharField(label='Casino', initial='Casino')    
+    stakes = forms.ChoiceField(label='Stakes', choices = stakes_choices )
+    game = forms.ChoiceField(label='Game', choices = game_choices )
+
 
 class DebitForm(forms.Form):
 
@@ -33,3 +65,19 @@ class DebitForm(forms.Form):
 class PluslDebit(forms.Form):
 
     plus_debit = forms.FloatField(label = 'Add more Debit')
+
+class PluslBuyIn(forms.Form):
+
+    plus_buy_in = forms.FloatField(label = 'Add to the buy-in')
+    def clean_plus_buy_in(self):
+        plus_buy_in = self.cleaned_data['plus_buy_in']
+        
+        return plus_buy_in
+
+class PlusStack(forms.Form):
+
+    plus_stack = forms.FloatField(label = 'Add to the stack')
+    def clean_plus_stack(self):
+        plus_stack = self.cleaned_data['plus_stack']
+        
+        return plus_stack
