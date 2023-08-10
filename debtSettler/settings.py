@@ -150,7 +150,7 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend'
 ]
 
-SITE_ID = 3
+SITE_ID = 2
 
 # Additional configuration settings
 SOCIALACCOUNT_QUERY_EMAIL = True
