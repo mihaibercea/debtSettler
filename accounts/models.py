@@ -1,6 +1,7 @@
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.text import slugify
 
 class CustomUser(AbstractUser):
     
@@ -22,6 +23,12 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+        
+    def save(self, *args, **kwargs):
+        if not self.username and self.email:
+            # Generate a username from the email address
+            self.username = slugify(self.email.split('@')[0])
+        super().save(*args, **kwargs)
     
     class Meta:
         ordering = ['username']    

@@ -117,12 +117,12 @@ DATABASES = {
 # }
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 
 #dbname=debt-settler-database host=debt-settler-server.postgres.database.azure.com port=5432 sslmode=require user=hfojhxnhrz password=OU07J06IDH8135O5$
@@ -150,15 +150,14 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend'
 ]
 
-
 SITE_ID = 3
-LOGIN_REDIRECT_URL = '/home'
 
 # Additional configuration settings
 SOCIALACCOUNT_QUERY_EMAIL = True
 ACCOUNT_LOGOUT_ON_GET= True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_REQUIRED = True
+
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
@@ -219,11 +218,21 @@ STATIC_ROOT = BASE_DIR / 'static'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "accounts.CustomUser"
-LOGIN_REDIRECT_URL = "../../home"
-LOGOUT_REDIRECT_URL = "../../home"
+LOGIN_REDIRECT_URL = '/home'
+LOGOUT_REDIRECT_URL = '/home'
 APPEND_SLASH=False
 
 CSRF_TRUSTED_ORIGINS = ['https://debt-settler.azurewebsites.net']
+
+# # Make sure to replace 'yourapp' with the actual name of your Django app
+# from debtSettler.pipelines import set_username_as_email
+
+SOCIALACCOUNT_PIPELINE = (
+    # ... Other pipeline steps ...
+    'debtSettler.pipelines.set_username_as_email',  # Add this line
+    # ... Other pipeline steps ...
+)
+
 
 LOGGING = {
     'version': 1,
