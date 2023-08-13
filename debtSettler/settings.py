@@ -117,12 +117,12 @@ DATABASES = {
 # }
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 #dbname=debt-settler-database host=debt-settler-server.postgres.database.azure.com port=5432 sslmode=require user=hfojhxnhrz password=OU07J06IDH8135O5$
@@ -150,7 +150,7 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend'
 ]
 
-SITE_ID = 2
+SITE_ID = 3
 
 # Additional configuration settings
 SOCIALACCOUNT_QUERY_EMAIL = True
