@@ -1,5 +1,7 @@
 # debtSettler
-An app that settles debt.
+This is an app that can be used to split money for collective meals, for example. It can also be used to settle poker sessions:D
 
-I am bluilding an app that calculates and settles debt.
-You can create clubs with members. Members then can create sessions add 'plus' or 'minus' sums. The app then splits the 'debt' among all members.
+The app has a user system. 
+Club systems where users can create clubs and add all these sessions (settling debt or splitting bills ) insidw these clubs.
+
+Users can also track their poker bankroll. There are also graphs to show winning and losing sessions
